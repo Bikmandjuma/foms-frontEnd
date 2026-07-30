@@ -62,7 +62,7 @@ export default function LoginPage() {
 
         <div className="relative">
           <h1 className="display text-3xl font-semibold text-white leading-tight max-w-sm">
-            Programs, beneficiaries, and field teams — one workspace per tenant.
+            Programs, beneficiaries, and field teams one workspace per tenant.
           </h1>
           <p className="text-sm mt-3 max-w-sm" style={{ color: "rgba(255,255,255,0.65)" }}>
             Sign in with your tenant account to manage users, roles, programs and beneficiaries.
@@ -165,9 +165,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className="text-xs text-center mt-8" style={{ color: "var(--muted)" }}>
+            {/*<p className="text-xs text-center mt-8" style={{ color: "var(--muted)" }}>
               Platform admin? Seed account: <span className="mono">admin@huska.rw</span>
-            </p>
+            </p>*/}
           </div>
         </div>
       </div>

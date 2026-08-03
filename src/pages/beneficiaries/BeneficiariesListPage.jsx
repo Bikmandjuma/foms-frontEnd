@@ -162,7 +162,7 @@ export default function BeneficiariesListPage() {
       </div>
 
       <div className="card">
-        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No beneficiaries match yet — add the first one or adjust your filters." />
+        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No beneficiaries match yet ,add the first one or adjust your filters." />
         <Pagination page={page} pageSize={pageSize} total={rows.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 

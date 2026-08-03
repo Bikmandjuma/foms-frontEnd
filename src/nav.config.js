@@ -9,6 +9,7 @@ import {
   Repeat,
   Radar,
   History,
+  Truck,
 } from "lucide-react";
 import { ACTIONS } from "./permissions/permissions.js";
 
@@ -25,7 +26,7 @@ export const NAV = [
     requires: ACTIONS.USERS_VIEW,
     children: [
       { label: "View users", to: "/users" },
-      { label: "Add user", to: "/users/new", requires: ACTIONS.USERS_MANAGE },
+      { label: "Add user", to: "/users/new", requires: ACTIONS.USERS_CREATE },
     ],
   },
   {
@@ -36,7 +37,7 @@ export const NAV = [
     requires: ACTIONS.ROLES_VIEW,
     children: [
       { label: "View roles", to: "/roles" },
-      { label: "Add role", to: "/roles/new", requires: ACTIONS.ROLES_MANAGE },
+      { label: "Add role", to: "/roles/new", requires: ACTIONS.ROLES_CREATE },
     ],
   },
   {
@@ -47,7 +48,7 @@ export const NAV = [
     requires: ACTIONS.PROGRAMS_VIEW,
     children: [
       { label: "View programs", to: "/programs" },
-      { label: "Add program", to: "/programs/new", requires: ACTIONS.PROGRAMS_MANAGE },
+      { label: "Add program", to: "/programs/new", requires: ACTIONS.PROGRAMS_CREATE },
     ],
   },
   {
@@ -58,7 +59,7 @@ export const NAV = [
     requires: ACTIONS.BENEFICIARIES_VIEW,
     children: [
       { label: "View respondents", to: "/beneficiaries" },
-      { label: "Add respondent", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_MANAGE },
+      { label: "Add respondent", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
     ],
   },
   {
@@ -70,6 +71,17 @@ export const NAV = [
     children: [
       { label: "Program assignments", to: "/assignments/programs" },
       { label: "Respondent assignments", to: "/assignments/beneficiaries" },
+    ],
+  },
+  {
+    type: "group",
+    key: "vehicles",
+    label: "Vehicles",
+    icon: Truck,
+    requires: ACTIONS.VEHICLES_VIEW,
+    children: [
+      { label: "View vehicles", to: "/vehicles" },
+      { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
     ],
   },
   {
@@ -94,7 +106,6 @@ export const NAV = [
     label: "Activity logs",
     icon: History,
     to: "/activity-logs",
-    requires: ACTIONS.ACTIVITY_VIEW,
   },
   {
     type: "group",

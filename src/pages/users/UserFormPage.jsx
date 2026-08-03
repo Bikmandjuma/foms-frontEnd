@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Field, TextInput, SelectInput } from "../../components/FormField.jsx";
 import { usersApi } from "../../api/users.api.js";
 import { rolesApi } from "../../api/roles.api.js";
+import { useToast } from "../../context/ToastContext.jsx";
+import { usePermissions } from "../../permissions/usePermissions.js";
+import { ACTIONS } from "../../permissions/permissions.js";
 
 const GENDERS = ["MALE", "FEMALE", "OTHER"];
 const STATUSES = ["ACTIVE", "INACTIVE", "SUSPENDED"];
@@ -28,6 +31,14 @@ export default function UserFormPage() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const toast = useToast();
+  const { can } = usePermissions();
+  // Creating is always manager-only (route already enforces this). Editing
+  // can also mean "editing myself" via the self-service route bypass — in
+  // that case role/status must stay read-only; only a manager changes those,
+  // on anyone, including themselves.
+  const canManage = can(ACTIONS.USERS_EDIT);
+  const canEditRoleAndStatus = !isEdit || canManage;
 
   const [form, setForm] = useState(EMPTY);
   const [roles, setRoles] = useState([]);
@@ -83,6 +94,10 @@ export default function UserFormPage() {
     setSaving(true);
     try {
       const payload = { ...form };
+      if (!canEditRoleAndStatus) {
+        delete payload.roleId;
+        delete payload.status;
+      }
       Object.keys(payload).forEach((k) => {
         if (payload[k] === "") delete payload[k];
       });
@@ -91,6 +106,7 @@ export default function UserFormPage() {
       if (isEdit) await usersApi.update(id, payload);
       else await usersApi.create(payload);
 
+      toast.success(isEdit ? "User updated" : "User created");
       navigate("/users");
     } catch (err) {
       setError(err.message || "Couldn't save this user.");
@@ -104,7 +120,7 @@ export default function UserFormPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 max-w-2xl">
+    <div className="flex flex-col gap-5 max-w-2xl mx-auto">
       <div className="flex items-center gap-3">
         <Link to="/users" className="btn-secondary" style={{ height: 36, width: 36, padding: 0 }} aria-label="Back to users">
           <ArrowLeft size={16} />
@@ -122,6 +138,12 @@ export default function UserFormPage() {
       {error && (
         <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}>
           {error}
+        </div>
+      )}
+
+      {isEdit && !canEditRoleAndStatus && (
+        <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}>
+          You're editing your own profile — only a manager can change your role or status.
         </div>
       )}
 
@@ -146,15 +168,22 @@ export default function UserFormPage() {
           <Field label="Full name">
             <TextInput value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Jane Uwimana" />
           </Field>
-          <Field label="Role" required>
-            <SelectInput required value={form.roleId} onChange={(e) => update("roleId", e.target.value)}>
-              <option value="">Select a role…</option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </SelectInput>
+          <Field label="Role" required={canEditRoleAndStatus}>
+            {canEditRoleAndStatus ? (
+              <SelectInput required value={form.roleId} onChange={(e) => update("roleId", e.target.value)}>
+                <option value="">Select a role…</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </SelectInput>
+            ) : (
+              <div className="field" style={{ color: "var(--muted)" }}>
+                <ShieldCheck size={16} color="var(--muted)" />
+                {roles.find((r) => r.id === form.roleId)?.name || "No role assigned"}
+              </div>
+            )}
           </Field>
         </div>
 
@@ -191,13 +220,19 @@ export default function UserFormPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Status">
-            <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </SelectInput>
+            {canEditRoleAndStatus ? (
+              <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </SelectInput>
+            ) : (
+              <div className="field" style={{ color: "var(--muted)" }}>
+                {form.status}
+              </div>
+            )}
           </Field>
           <Field label="Education level">
             <SelectInput value={form.educationLevel} onChange={(e) => update("educationLevel", e.target.value)}>

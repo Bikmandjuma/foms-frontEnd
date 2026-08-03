@@ -4,6 +4,8 @@ import { Menu, Sun, Moon, ChevronDown, Settings, LogOut, UserCircle, Bell, Check
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNotifications } from "../context/NotificationContext.jsx";
+import { usePermissions } from "../permissions/usePermissions.js";
+import { ACTIONS } from "../permissions/permissions.js";
 
 function useOnClickOutside(ref, handler) {
   useEffect(() => {
@@ -34,11 +36,47 @@ const NOTIFICATION_ICONS = {
   SYSTEM: Info,
 };
 
+/**
+ * Where a notification's "related content" lives, and whether the current
+ * user is actually allowed to go there. Returns null when there's nowhere
+ * sensible to send them (SYSTEM messages) or when they lack the permission
+ * for it — in which case the bell just marks it read and stays put, rather
+ * than navigating somewhere that immediately shows "Access restricted".
+ */
+function resolveNotificationTarget(notification, can) {
+  switch (notification.type) {
+    case "ASSIGNMENT_PROGRAM":
+      return can(ACTIONS.ASSIGNMENTS_VIEW) ? "/assignments/programs" : null;
+    case "ASSIGNMENT_BENEFICIARY":
+      return can(ACTIONS.ASSIGNMENTS_VIEW) ? "/assignments/beneficiaries" : null;
+    case "REPLACEMENT_REQUESTED":
+    case "REPLACEMENT_DECIDED":
+      // The replacements route has no permission gate — any authenticated
+      // user can raise/track requests — so this is always reachable.
+      return "/replacements";
+    default:
+      return null;
+  }
+}
+
 function NotificationBell() {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const { can } = usePermissions();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useOnClickOutside(ref, () => setOpen(false));
+
+  function handleNotificationClick(n) {
+    if (!n.read) markRead(n.id);
+    const target = resolveNotificationTarget(n, can);
+    if (target) {
+      setOpen(false);
+      navigate(target);
+    }
+    // No permitted target — just stays where it is; marking read above is
+    // still the right behavior even when there's nowhere to go.
+  }
 
   return (
     <div className="relative" ref={ref}>
@@ -49,7 +87,7 @@ function NotificationBell() {
         className="relative w-9 h-9 rounded-xl flex items-center justify-center"
         style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
       >
-        <Bell size={16} color="var(--muted)" />
+        <Bell size={16} color="var(--muted)" className={unreadCount > 0 ? "bell-has-unread" : ""} />
         {unreadCount > 0 && (
           <span
             className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] flex items-center justify-center text-white font-semibold"
@@ -93,7 +131,7 @@ function NotificationBell() {
               return (
                 <button
                   key={n.id}
-                  onClick={() => !n.read && markRead(n.id)}
+                  onClick={() => handleNotificationClick(n)}
                   className="w-full flex items-start gap-3 px-4 py-3 text-left"
                   style={{
                     borderBottom: "1px solid var(--border)",

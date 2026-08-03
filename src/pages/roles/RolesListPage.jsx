@@ -3,16 +3,23 @@ import { Link } from "react-router-dom";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
+import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
 import { rolesApi } from "../../api/roles.api.js";
+import { useToast } from "../../context/ToastContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
 import { ACTIONS } from "../../permissions/permissions.js";
 
 export default function RolesListPage() {
   const { can } = usePermissions();
+  const toast = useToast();
+  const canCreate = can(ACTIONS.ROLES_CREATE);
+  const canEdit = can(ACTIONS.ROLES_EDIT);
+  const canDelete = can(ACTIONS.ROLES_DELETE);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [pendingDelete, setPendingDelete] = useState(null);
+  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(rows, 10);
 
   async function load() {
     setLoading(true);
@@ -35,6 +42,7 @@ export default function RolesListPage() {
     try {
       await rolesApi.remove(pendingDelete.id);
       setRows((r) => r.filter((role) => role.id !== pendingDelete.id));
+      toast.success(`Role "${pendingDelete.name}" was deleted`);
     } catch (err) {
       setError(err.message || "Couldn't delete role. It may still be assigned to users.");
     } finally {
@@ -45,19 +53,23 @@ export default function RolesListPage() {
   const columns = [
     { key: "name", label: "Name" },
     { key: "description", label: "Description", render: (r) => r.description || <span style={{ color: "var(--muted)" }}>—</span> },
-    ...(can(ACTIONS.ROLES_MANAGE)
+    ...(canEdit || canDelete
       ? [
           {
             key: "actions",
             label: "",
             render: (r) => (
               <div className="flex items-center gap-2 justify-end">
-                <Link to={`/roles/${r.id}/edit`} className="btn-secondary" style={{ height: 32, padding: "0 10px" }}>
-                  <Pencil size={14} />
-                </Link>
-                <button className="btn-secondary btn-danger" style={{ height: 32, padding: "0 10px" }} onClick={() => setPendingDelete(r)}>
-                  <Trash2 size={14} />
-                </button>
+                {canEdit && (
+                  <Link to={`/roles/${r.id}/edit`} className="btn-secondary" style={{ height: 32, padding: "0 10px" }}>
+                    <Pencil size={14} />
+                  </Link>
+                )}
+                {canDelete && (
+                  <button className="btn-secondary btn-danger" style={{ height: 32, padding: "0 10px" }} onClick={() => setPendingDelete(r)}>
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             ),
           },
@@ -76,7 +88,7 @@ export default function RolesListPage() {
             Roles scoped to this tenant. Assign them to users on the Users page.
           </p>
         </div>
-        {can(ACTIONS.ROLES_MANAGE) && (
+        {canCreate && (
           <Link to="/roles/new" className="btn-primary">
             <Plus size={16} />
             Add role
@@ -91,7 +103,8 @@ export default function RolesListPage() {
       )}
 
       <div className="card">
-        <DataTable columns={columns} rows={rows} loading={loading} emptyLabel="No roles yet — add the first one." />
+        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No roles yet — add the first one." />
+        <Pagination page={page} pageSize={pageSize} total={rows.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       <ConfirmDialog

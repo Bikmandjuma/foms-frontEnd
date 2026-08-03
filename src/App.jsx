@@ -5,6 +5,7 @@ import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
 import { PresenceProvider } from "./context/PresenceContext.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
+import { ToastProvider } from "./context/ToastContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { ACTIONS } from "./permissions/permissions.js";
@@ -12,6 +13,7 @@ import { ACTIONS } from "./permissions/permissions.js";
 import LoginPage from "./pages/LoginPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import UsersListPage from "./pages/users/UsersListPage.jsx";
+import UserViewPage from "./pages/users/UserViewPage.jsx";
 import UserFormPage from "./pages/users/UserFormPage.jsx";
 import RolesListPage from "./pages/roles/RolesListPage.jsx";
 import RoleFormPage from "./pages/roles/RoleFormPage.jsx";
@@ -21,6 +23,8 @@ import BeneficiariesListPage from "./pages/beneficiaries/BeneficiariesListPage.j
 import BeneficiaryFormPage from "./pages/beneficiaries/BeneficiaryFormPage.jsx";
 import ProgramAssignmentsPage from "./pages/assignments/ProgramAssignmentsPage.jsx";
 import BeneficiaryAssignmentsPage from "./pages/assignments/BeneficiaryAssignmentsPage.jsx";
+import VehiclesListPage from "./pages/vehicles/VehiclesListPage.jsx";
+import VehicleFormPage from "./pages/vehicles/VehicleFormPage.jsx";
 import ReplacementRequestsPage from "./pages/replacements/ReplacementRequestsPage.jsx";
 import FieldMonitoringPage from "./pages/monitoring/FieldMonitoringPage.jsx";
 import ActivityLogsPage from "./pages/activity/ActivityLogsPage.jsx";
@@ -31,8 +35,9 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
+    <ToastProvider>
+      <ThemeProvider>
+        <AuthProvider>
         <SocketProvider>
           <PresenceProvider>
             <NotificationProvider>
@@ -51,29 +56,34 @@ export default function App() {
                     <Route index element={<DashboardPage />} />
 
                     <Route path="users" element={<ProtectedRoute requires={ACTIONS.USERS_VIEW}><UsersListPage /></ProtectedRoute>} />
-                    <Route path="users/new" element={<ProtectedRoute requires={ACTIONS.USERS_MANAGE}><UserFormPage /></ProtectedRoute>} />
-                    <Route path="users/:id/edit" element={<ProtectedRoute requires={ACTIONS.USERS_MANAGE}><UserFormPage /></ProtectedRoute>} />
+                    <Route path="users/new" element={<ProtectedRoute requires={ACTIONS.USERS_CREATE}><UserFormPage /></ProtectedRoute>} />
+                    <Route path="users/:id" element={<ProtectedRoute requires={ACTIONS.USERS_VIEW} allowSelfParam="id"><UserViewPage /></ProtectedRoute>} />
+                    <Route path="users/:id/edit" element={<ProtectedRoute requires={ACTIONS.USERS_EDIT} allowSelfParam="id"><UserFormPage /></ProtectedRoute>} />
 
                     <Route path="roles" element={<ProtectedRoute requires={ACTIONS.ROLES_VIEW}><RolesListPage /></ProtectedRoute>} />
-                    <Route path="roles/new" element={<ProtectedRoute requires={ACTIONS.ROLES_MANAGE}><RoleFormPage /></ProtectedRoute>} />
-                    <Route path="roles/:id/edit" element={<ProtectedRoute requires={ACTIONS.ROLES_MANAGE}><RoleFormPage /></ProtectedRoute>} />
+                    <Route path="roles/new" element={<ProtectedRoute requires={ACTIONS.ROLES_CREATE}><RoleFormPage /></ProtectedRoute>} />
+                    <Route path="roles/:id/edit" element={<ProtectedRoute requires={ACTIONS.ROLES_EDIT}><RoleFormPage /></ProtectedRoute>} />
 
                     <Route path="programs" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_VIEW}><ProgramsListPage /></ProtectedRoute>} />
-                    <Route path="programs/new" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_MANAGE}><ProgramFormPage /></ProtectedRoute>} />
-                    <Route path="programs/:id/edit" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_MANAGE}><ProgramFormPage /></ProtectedRoute>} />
+                    <Route path="programs/new" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_CREATE}><ProgramFormPage /></ProtectedRoute>} />
+                    <Route path="programs/:id/edit" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_EDIT}><ProgramFormPage /></ProtectedRoute>} />
 
                     <Route path="beneficiaries" element={<ProtectedRoute requires={ACTIONS.BENEFICIARIES_VIEW}><BeneficiariesListPage /></ProtectedRoute>} />
-                    <Route path="beneficiaries/new" element={<ProtectedRoute requires={ACTIONS.BENEFICIARIES_MANAGE}><BeneficiaryFormPage /></ProtectedRoute>} />
-                    <Route path="beneficiaries/:id/edit" element={<ProtectedRoute requires={ACTIONS.BENEFICIARIES_MANAGE}><BeneficiaryFormPage /></ProtectedRoute>} />
+                    <Route path="beneficiaries/new" element={<ProtectedRoute requires={ACTIONS.BENEFICIARIES_CREATE}><BeneficiaryFormPage /></ProtectedRoute>} />
+                    <Route path="beneficiaries/:id/edit" element={<ProtectedRoute requires={ACTIONS.BENEFICIARIES_EDIT}><BeneficiaryFormPage /></ProtectedRoute>} />
 
                     <Route path="assignments/programs" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><ProgramAssignmentsPage /></ProtectedRoute>} />
                     <Route path="assignments/beneficiaries" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><BeneficiaryAssignmentsPage /></ProtectedRoute>} />
+
+                    <Route path="vehicles" element={<ProtectedRoute requires={ACTIONS.VEHICLES_VIEW}><VehiclesListPage /></ProtectedRoute>} />
+                    <Route path="vehicles/new" element={<ProtectedRoute requires={ACTIONS.VEHICLES_CREATE}><VehicleFormPage /></ProtectedRoute>} />
+                    <Route path="vehicles/:id/edit" element={<ProtectedRoute requires={ACTIONS.VEHICLES_EDIT}><VehicleFormPage /></ProtectedRoute>} />
 
                     <Route path="replacements" element={<ProtectedRoute requires={ACTIONS.REPLACEMENTS_VIEW}><ReplacementRequestsPage /></ProtectedRoute>} />
 
                     <Route path="monitoring" element={<ProtectedRoute requires={ACTIONS.MONITORING_VIEW}><FieldMonitoringPage /></ProtectedRoute>} />
 
-                    <Route path="activity-logs" element={<ProtectedRoute requires={ACTIONS.ACTIVITY_VIEW}><ActivityLogsPage /></ProtectedRoute>} />
+                    <Route path="activity-logs" element={<ProtectedRoute><ActivityLogsPage /></ProtectedRoute>} />
 
                     <Route path="tenants" element={<ProtectedRoute requires={ACTIONS.TENANTS_VIEW}><TenantsListPage /></ProtectedRoute>} />
                     <Route path="tenants/new" element={<ProtectedRoute requires={ACTIONS.TENANTS_MANAGE}><TenantFormPage /></ProtectedRoute>} />
@@ -90,5 +100,6 @@ export default function App() {
         </SocketProvider>
       </AuthProvider>
     </ThemeProvider>
+    </ToastProvider>
   );
 }

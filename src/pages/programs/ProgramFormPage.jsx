@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Field, TextInput, TextArea, SelectInput } from "../../components/FormField.jsx";
 import { programsApi } from "../../api/programs.api.js";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const SCENARIO_TYPES = ["BASELINE_SURVEY", "ENDLINE_SURVEY", "TRACER_STUDY", "PROGRAM_OUTCOME_ASSESSMENT", "QUALITATIVE_STUDY"];
 const PROJECT_STATUSES = ["PLANNING", "FIELDWORK", "DATA_CLEANING", "REPORTING", "COMPLETED"];
@@ -11,6 +12,7 @@ export default function ProgramFormPage() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [form, setForm] = useState({
     name: "",
@@ -69,6 +71,7 @@ export default function ProgramFormPage() {
       };
       if (isEdit) await programsApi.update(id, payload);
       else await programsApi.create(payload);
+      toast.success(isEdit ? "Program updated" : "Program created");
       navigate("/programs");
     } catch (err) {
       setError(err.message || "Couldn't save this program.");
@@ -80,7 +83,7 @@ export default function ProgramFormPage() {
   if (loading) return <p className="text-sm" style={{ color: "var(--muted)" }}>Loading…</p>;
 
   return (
-    <div className="flex flex-col gap-5 max-w-2xl">
+    <div className="flex flex-col gap-5 max-w-2xl mx-auto">
       <div className="flex items-center gap-3">
         <Link to="/programs" className="btn-secondary" style={{ height: 36, width: 36, padding: 0 }} aria-label="Back to programs">
           <ArrowLeft size={16} />

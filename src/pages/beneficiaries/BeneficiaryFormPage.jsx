@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Field, TextInput, SelectInput } from "../../components/FormField.jsx";
 import { beneficiariesApi } from "../../api/beneficiaries.api.js";
 import { programsApi } from "../../api/programs.api.js";
+import { useToast } from "../../context/ToastContext.jsx";
 
 const GENDERS = ["MALE", "FEMALE", "OTHER"];
 const STATUSES = ["ACTIVE", "INACTIVE", "SUSPENDED"];
@@ -15,6 +16,8 @@ const EMPTY = {
   province: "",
   district: "",
   sector: "",
+  cell: "",
+  village: "",
   gender: "",
   dateOfBirth: "",
   status: "ACTIVE",
@@ -29,6 +32,7 @@ export default function BeneficiaryFormPage() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [form, setForm] = useState(EMPTY);
   const [programs, setPrograms] = useState([]);
@@ -55,6 +59,8 @@ export default function BeneficiaryFormPage() {
             province: b.province || "",
             district: b.district || "",
             sector: b.sector || "",
+            cell: b.cell || "",
+            village: b.village || "",
             gender: b.gender || "",
             dateOfBirth: b.dateOfBirth ? b.dateOfBirth.slice(0, 10) : "",
             status: b.status || "ACTIVE",
@@ -105,6 +111,7 @@ export default function BeneficiaryFormPage() {
       if (isEdit) await beneficiariesApi.update(id, payload);
       else await beneficiariesApi.create(payload);
 
+      toast.success(isEdit ? "Beneficiary updated" : "Beneficiary created");
       navigate("/beneficiaries");
     } catch (err) {
       setError(err.message || "Couldn't save this beneficiary.");
@@ -116,7 +123,7 @@ export default function BeneficiaryFormPage() {
   if (loading) return <p className="text-sm" style={{ color: "var(--muted)" }}>Loading…</p>;
 
   return (
-    <div className="flex flex-col gap-5 max-w-2xl">
+    <div className="flex flex-col gap-5 max-w-2xl mx-auto">
       <div className="flex items-center gap-3">
         <Link to="/beneficiaries" className="btn-secondary" style={{ height: 36, width: 36, padding: 0 }} aria-label="Back to beneficiaries">
           <ArrowLeft size={16} />
@@ -163,6 +170,15 @@ export default function BeneficiaryFormPage() {
           </Field>
           <Field label="Sector">
             <TextInput value={form.sector} onChange={(e) => update("sector", e.target.value)} />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Cell">
+            <TextInput value={form.cell} onChange={(e) => update("cell", e.target.value)} />
+          </Field>
+          <Field label="Village" hint="Cell and village power the replacement-matching engine — the more precise, the better the suggested replacements.">
+            <TextInput value={form.village} onChange={(e) => update("village", e.target.value)} />
           </Field>
         </div>
 

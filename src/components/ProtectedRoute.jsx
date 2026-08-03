@@ -1,12 +1,13 @@
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { usePermissions } from "../permissions/usePermissions.js";
 
-export default function ProtectedRoute({ children, requires }) {
+export default function ProtectedRoute({ children, requires, allowSelfParam }) {
   const { user, loading } = useAuth();
   const { can } = usePermissions();
   const location = useLocation();
+  const params = useParams();
 
   if (loading) {
     return (
@@ -20,7 +21,12 @@ export default function ProtectedRoute({ children, requires }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requires && !can(requires)) {
+  // A route can opt in to letting someone through when the URL is "about
+  // them" — e.g. /users/:id for their own id — even without the permission
+  // that would otherwise be required to view/edit someone else's record.
+  const isSelf = allowSelfParam ? params[allowSelfParam] === user.id : false;
+
+  if (requires && !can(requires) && !isSelf) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-10 text-center">
         <p className="display text-lg font-semibold" style={{ color: "var(--text)" }}>

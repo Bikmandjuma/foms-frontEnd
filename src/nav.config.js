@@ -62,7 +62,6 @@ export const NAV = [
       { label: "Add respondent", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
     ],
   },
-  
   {
     type: "group",
     key: "vehicles",
@@ -74,7 +73,6 @@ export const NAV = [
       { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
     ],
   },
-  
   {
     type: "group",
     key: "assignments",

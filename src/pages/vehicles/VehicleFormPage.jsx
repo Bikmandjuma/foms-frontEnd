@@ -79,7 +79,7 @@ export default function VehicleFormPage() {
             {isEdit ? "Edit vehicle" : "Add vehicle"}
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-            A name/plate, driver, and optional daily capacity — that's all the engine needs.
+            A name/plate, driver, and optional daily capacity that's all the engine needs.
           </p>
         </div>
       </div>

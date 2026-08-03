@@ -112,7 +112,7 @@ export default function VehiclesListPage() {
             Vehicles
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-            Optional transport resources — name, driver, and daily capacity — used by the smart assignment engine when a
+            Optional transport resources name, driver, and daily capacity used by the smart assignment engine when a
             deployment has vehicles or motorcycles to allocate respondents across.
           </p>
         </div>
@@ -131,7 +131,7 @@ export default function VehiclesListPage() {
       )}
 
       <div className="card">
-        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No vehicles yet — add one if this deployment uses transport." />
+        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No vehicles yet , add one if this deployment uses transport." />
         <Pagination page={page} pageSize={pageSize} total={rows.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 

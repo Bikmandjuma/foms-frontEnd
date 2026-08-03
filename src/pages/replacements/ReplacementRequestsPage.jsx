@@ -292,7 +292,7 @@ export default function ReplacementRequestsPage() {
           Replacement requests
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          An enumerator never picks their own replacement — every substitution goes through a documented approval,
+          An enumerator never picks their own replacement every substitution goes through a documented approval,
           searched outward from village to province.
         </p>
       </div>
@@ -318,7 +318,7 @@ export default function ReplacementRequestsPage() {
               ))}
             </SelectInput>
           </Field>
-          <Field label="Suggested candidate (optional)" hint="The approver picks the final replacement from a ranked list — this is just a hint.">
+          <Field label="Suggested candidate (optional)" hint="The approver picks the final replacement from a ranked list this is just a hint.">
             <SelectInput value={form.candidateRespondentId} onChange={(e) => setForm((f) => ({ ...f, candidateRespondentId: e.target.value }))}>
               <option value="">Let approver choose…</option>
               {beneficiaries

@@ -182,7 +182,7 @@ export default function ActivityLogsPage() {
             Activity logs
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-            The full audit trail for this tenant — updates live as things happen.
+            The full audit trail for this tenant updates live as things happen.
           </p>
         </div>
       </div>

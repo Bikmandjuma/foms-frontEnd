@@ -171,9 +171,9 @@ export default function UserFormPage() {
           <Field label="Role" required={canEditRoleAndStatus}>
             {canEditRoleAndStatus ? (
               <SelectInput required value={form.roleId} onChange={(e) => update("roleId", e.target.value)}>
-                <option value="">Select a role…</option>
+                <option value="" className="text-black">Select a role…</option>
                 {roles.map((r) => (
-                  <option key={r.id} value={r.id}>
+                  <option key={r.id} value={r.id} className="text-black">
                     {r.name}
                   </option>
                 ))}
@@ -193,9 +193,9 @@ export default function UserFormPage() {
           </Field>
           <Field label="Gender">
             <SelectInput value={form.gender} onChange={(e) => update("gender", e.target.value)}>
-              <option value="">—</option>
+              <option value="" className="text-black">—</option>
               {GENDERS.map((g) => (
-                <option key={g} value={g}>
+                <option key={g} value={g} className="text-black">
                   {g}
                 </option>
               ))}
@@ -223,7 +223,7 @@ export default function UserFormPage() {
             {canEditRoleAndStatus ? (
               <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
                 {STATUSES.map((s) => (
-                  <option key={s} value={s}>
+                  <option key={s} value={s} className="text-black">
                     {s}
                   </option>
                 ))}
@@ -238,7 +238,7 @@ export default function UserFormPage() {
             <SelectInput value={form.educationLevel} onChange={(e) => update("educationLevel", e.target.value)}>
               <option value="">—</option>
               {EDUCATION_LEVELS.map((lvl) => (
-                <option key={lvl} value={lvl}>
+                <option key={lvl} value={lvl} className="text-black">
                   {lvl}
                 </option>
               ))}

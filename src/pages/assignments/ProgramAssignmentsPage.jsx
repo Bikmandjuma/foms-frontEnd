@@ -178,9 +178,11 @@ export default function ProgramAssignmentsPage() {
           <div className="max-w-sm">
             <Field label="Program" required>
               <SelectInput icon={ClipboardList} required value={programId} onChange={(e) => setProgramId(e.target.value)}>
-                <option value="">Select a program…</option>
+                <option value="" className="text-black">
+                  Select a program…
+                </option>
                 {programs.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <option key={p.id} value={p.id} className="text-black">
                     {p.name}
                   </option>
                 ))}

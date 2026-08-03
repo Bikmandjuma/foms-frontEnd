@@ -310,9 +310,11 @@ export default function ReplacementRequestsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Respondent who can't be reached" required>
             <SelectInput required value={form.originalRespondentId} onChange={(e) => setForm((f) => ({ ...f, originalRespondentId: e.target.value }))}>
-              <option value="">Select a respondent…</option>
+              <option value="" className="text-black">
+                Select a respondent…
+              </option>
               {beneficiaries.map((b) => (
-                <option key={b.id} value={b.id}>
+                <option key={b.id} value={b.id} className="text-black">
                   {b.name} ({b.code})
                 </option>
               ))}
@@ -320,11 +322,13 @@ export default function ReplacementRequestsPage() {
           </Field>
           <Field label="Suggested candidate (optional)" hint="The approver picks the final replacement from a ranked list this is just a hint.">
             <SelectInput value={form.candidateRespondentId} onChange={(e) => setForm((f) => ({ ...f, candidateRespondentId: e.target.value }))}>
-              <option value="">Let approver choose…</option>
+              <option value="" className="text-black">
+                Let approver choose…
+              </option>
               {beneficiaries
                 .filter((b) => b.id !== form.originalRespondentId)
                 .map((b) => (
-                  <option key={b.id} value={b.id}>
+                  <option key={b.id} value={b.id} className="text-black">
                     {b.name} ({b.code})
                   </option>
                 ))}

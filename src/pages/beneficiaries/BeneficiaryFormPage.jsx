@@ -185,9 +185,9 @@ export default function BeneficiaryFormPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="Gender">
             <SelectInput value={form.gender} onChange={(e) => update("gender", e.target.value)}>
-              <option value="">—</option>
+              <option value="" className="text-black">—</option>
               {GENDERS.map((g) => (
-                <option key={g} value={g}>
+                <option key={g} value={g} className="text-black">
                   {g}
                 </option>
               ))}
@@ -220,7 +220,7 @@ export default function BeneficiaryFormPage() {
           <Field label="Fieldwork outcome">
             <SelectInput value={form.outcome} onChange={(e) => update("outcome", e.target.value)}>
               {OUTCOMES.map((o) => (
-                <option key={o} value={o}>
+                <option key={o} value={o} className="text-black">
                   {o.replaceAll("_", " ")}
                 </option>
               ))}

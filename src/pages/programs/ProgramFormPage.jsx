@@ -112,9 +112,9 @@ export default function ProgramFormPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Study scenario">
             <SelectInput value={form.scenarioType} onChange={(e) => update("scenarioType", e.target.value)}>
-              <option value="">—</option>
+              <option value="" className="text-black">—</option>
               {SCENARIO_TYPES.map((s) => (
-                <option key={s} value={s}>
+                <option key={s} value={s} className="text-black">
                   {s.replaceAll("_", " ")}
                 </option>
               ))}
@@ -123,7 +123,7 @@ export default function ProgramFormPage() {
           <Field label="Status">
             <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
               {PROJECT_STATUSES.map((s) => (
-                <option key={s} value={s}>
+                <option key={s} value={s} className="text-black">
                   {s.replaceAll("_", " ")}
                 </option>
               ))}

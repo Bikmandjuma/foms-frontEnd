@@ -150,9 +150,9 @@ export default function BeneficiariesListPage() {
         <div className="sm:w-64">
           <Field>
             <SelectInput icon={ClipboardList} value={programId} onChange={(e) => setProgramId(e.target.value)}>
-              <option value="">All programs</option>
+              <option value="" className="text-black">All programs</option>
               {programs.map((p) => (
-                <option key={p.id} value={p.id}>
+                <option key={p.id} value={p.id} className="text-black">
                   {p.name}
                 </option>
               ))}

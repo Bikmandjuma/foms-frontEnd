@@ -202,9 +202,11 @@ export default function ActivityLogsPage() {
         <div className="sm:w-56">
           <Field>
             <SelectInput value={actionFilter} onChange={(e) => setActionFilter(e.target.value)}>
-              <option value="">All actions</option>
+              <option value="" className="text-black">
+                All actions
+              </option>
               {actionOptions.map((a) => (
-                <option key={a} value={a}>
+                <option key={a} value={a} className="text-black">
                   {a}
                 </option>
               ))}
@@ -237,7 +239,7 @@ export default function ActivityLogsPage() {
                 }}
               >
                 {PAGE_SIZES.map((n) => (
-                  <option key={n} value={n}>
+                  <option key={n} value={n} className="text-black">
                     {n} / page
                   </option>
                 ))}

@@ -98,14 +98,14 @@ export default function VehicleFormPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Type">
             <SelectInput value={form.type} onChange={(e) => update("type", e.target.value)}>
-              <option value="VEHICLE">Vehicle</option>
-              <option value="MOTORCYCLE">Motorcycle</option>
+              <option value="VEHICLE" className="text-black">Vehicle</option>
+              <option value="MOTORCYCLE" className="text-black">Motorcycle</option>
             </SelectInput>
           </Field>
           <Field label="Status">
             <SelectInput value={form.active ? "true" : "false"} onChange={(e) => update("active", e.target.value === "true")}>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
+              <option value="true" className="text-black">Active</option>
+              <option value="false" className="text-black">Inactive</option>
             </SelectInput>
           </Field>
         </div>

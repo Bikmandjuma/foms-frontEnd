@@ -64,17 +64,6 @@ export const NAV = [
   },
   {
     type: "group",
-    key: "vehicles",
-    label: "Vehicles",
-    icon: Truck,
-    requires: ACTIONS.VEHICLES_VIEW,
-    children: [
-      { label: "View vehicles", to: "/vehicles" },
-      { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
-    ],
-  },
-  {
-    type: "group",
     key: "assignments",
     label: "Assignments",
     icon: Link2,
@@ -84,7 +73,17 @@ export const NAV = [
       { label: "Respondent assignments", to: "/assignments/beneficiaries" },
     ],
   },
-  
+  {
+    type: "group",
+    key: "vehicles",
+    label: "Vehicles",
+    icon: Truck,
+    requires: ACTIONS.VEHICLES_VIEW,
+    children: [
+      { label: "View vehicles", to: "/vehicles" },
+      { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
+    ],
+  },
   {
     type: "link",
     key: "replacements",

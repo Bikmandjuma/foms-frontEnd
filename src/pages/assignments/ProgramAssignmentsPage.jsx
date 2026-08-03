@@ -150,7 +150,7 @@ export default function ProgramAssignmentsPage() {
           Program assignments
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          Which users are assigned to which programs — select as many users as you need and assign them in one go.
+          Which users are assigned to which programs , select as many users as you need and assign them in one go.
         </p>
       </div>
 

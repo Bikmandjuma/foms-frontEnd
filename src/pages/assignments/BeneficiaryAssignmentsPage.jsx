@@ -17,7 +17,7 @@ import { ACTIONS } from "../../permissions/permissions.js";
 const STRATEGIES = [
   { value: "EVEN", label: "Even split", icon: Scale, hint: "Divide the eligible respondents as equally as possible." },
   { value: "DAILY_TARGET", label: "Daily target", icon: Target, hint: "Cap each enumerator at a fixed number; the rest queue for next time." },
-  { value: "RANDOM", label: "Random top-up", icon: Shuffle, hint: "Same shuffle, no even-split guarantee — good for ad-hoc top-ups." },
+  { value: "RANDOM", label: "Random top-up", icon: Shuffle, hint: "Same shuffle, no even-split guarantee , good for ad-hoc top-ups." },
 ];
 
 const TRANSPORT_MODES = [
@@ -174,8 +174,8 @@ export default function BeneficiaryAssignmentsPage() {
       if (res.totalAssigned === 0) {
         toast.info(
           res.totalCandidates === 0
-            ? "No eligible respondents — everyone enrolled in this program already has an active caseworker (or none are enrolled yet). Try unchecking \"only unassigned\", or add respondents to the program first."
-            : "No respondents were assigned — check your daily target, or the vehicles' capacity if transport is selected.",
+            ? "No eligible respondents everyone enrolled in this program already has an active caseworker (or none are enrolled yet). Try unchecking \"only unassigned\", or add respondents to the program first."
+            : "No respondents were assigned check your daily target, or the vehicles' capacity if transport is selected.",
           7000
         );
       } else {
@@ -284,7 +284,7 @@ export default function BeneficiaryAssignmentsPage() {
                 Smart assignment engine
               </p>
               <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-                No vehicle or driver required — just a program, your enumerators, and a strategy. Transport below is
+                No vehicle or driver required .just a program, your enumerators, and a strategy. Transport below is
                 entirely optional. Respondents are clustered by geography (province → district → sector → cell →
                 village) before being shuffled, so nearby respondents tend to land with the same enumerator.
               </p>
@@ -294,9 +294,9 @@ export default function BeneficiaryAssignmentsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Program" required>
               <SelectInput icon={ClipboardList} required value={engineProgramId} onChange={(e) => setEngineProgramId(e.target.value)}>
-                <option value="">Select a program…</option>
+                <option value="" className="text-black">Select a program…</option>
                 {programs.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <option key={p.id} value={p.id} className="text-black">
                     {p.name}
                   </option>
                 ))}
@@ -332,7 +332,7 @@ export default function BeneficiaryAssignmentsPage() {
 
           {strategy === "DAILY_TARGET" && (
             <div className="max-w-xs">
-              <Field label="Daily target per enumerator" hint="Leftover respondents are never dropped — run the engine again tomorrow to pick up the queue.">
+              <Field label="Daily target per enumerator" hint="Leftover respondents are never dropped run the engine again tomorrow to pick up the queue.">
                 <TextInput icon={Target} type="number" min="1" value={dailyTarget} onChange={(e) => setDailyTarget(e.target.value)} placeholder="e.g. 15" />
               </Field>
             </div>
@@ -347,7 +347,7 @@ export default function BeneficiaryAssignmentsPage() {
             <label className="text-xs font-medium" style={{ color: "var(--text)" }}>
               Transport
               <span className="font-normal ml-1" style={{ color: "var(--muted)" }}>
-                (optional — the engine works fine with none selected)
+                (optional , the engine works fine with none selected)
               </span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -387,7 +387,7 @@ export default function BeneficiaryAssignmentsPage() {
 
                 {vehiclesForMode.length === 0 && (
                   <p className="text-xs" style={{ color: "var(--muted)" }}>
-                    No {transportMode === "MOTORCYCLE" ? "motorcycles" : "vehicles"} set up yet — add one, or leave transport
+                    No {transportMode === "MOTORCYCLE" ? "motorcycles" : "vehicles"} set up yet , add one, or leave transport
                     on "None" and the engine will assign to enumerators directly.
                   </p>
                 )}
@@ -485,7 +485,7 @@ export default function BeneficiaryAssignmentsPage() {
             <div className="rounded-xl p-4" style={{ backgroundColor: "var(--status-active-bg)" }}>
               <p className="text-sm font-medium mb-2" style={{ color: "var(--status-active-fg)" }}>
                 Assigned {engineResult.totalAssigned} of {engineResult.totalCandidates} eligible respondent(s)
-                {engineResult.leftover > 0 ? ` — ${engineResult.leftover} left over for next time` : ""}.
+                {engineResult.leftover > 0 ? ` , ${engineResult.leftover} left over for next time` : ""}.
               </p>
               {engineResult.perVehicle?.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -513,11 +513,11 @@ export default function BeneficiaryAssignmentsPage() {
         <form onSubmit={handleCreate} className="card p-5 flex flex-col sm:flex-row gap-4 sm:items-end">
           <p className="text-xs font-medium uppercase tracking-widest hidden sm:block" style={{ color: "var(--muted)", writingMode: "vertical-rl" }} />
           <div className="flex-1">
-            <Field label="Manual assignment — User">
+            <Field label="Manual assignment , User">
               <SelectInput value={form.userId} onChange={(e) => setForm((f) => ({ ...f, userId: e.target.value }))}>
-                <option value="">Select a user…</option>
+                <option value="" className="text-black">Select a user…</option>
                 {users.map((u) => (
-                  <option key={u.id} value={u.id}>
+                  <option key={u.id} value={u.id} className="text-black">
                     {u.name || u.email}
                   </option>
                 ))}
@@ -527,9 +527,9 @@ export default function BeneficiaryAssignmentsPage() {
           <div className="flex-1">
             <Field label="Beneficiary">
               <SelectInput value={form.beneficiaryId} onChange={(e) => setForm((f) => ({ ...f, beneficiaryId: e.target.value }))}>
-                <option value="">Select a beneficiary…</option>
+                <option value="" className="text-black">Select a beneficiary…</option>
                 {beneficiaries.map((b) => (
-                  <option key={b.id} value={b.id}>
+                  <option key={b.id} value={b.id} className="text-black">
                     {b.name} ({b.code})
                   </option>
                 ))}

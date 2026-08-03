@@ -177,7 +177,7 @@ export default function BeneficiaryFormPage() {
           <Field label="Cell">
             <TextInput value={form.cell} onChange={(e) => update("cell", e.target.value)} />
           </Field>
-          <Field label="Village" hint="Cell and village power the replacement-matching engine — the more precise, the better the suggested replacements.">
+          <Field label="Village" hint="Cell and village power the replacement-matching engine , the more precise, the better the suggested replacements.">
             <TextInput value={form.village} onChange={(e) => update("village", e.target.value)} />
           </Field>
         </div>

@@ -250,7 +250,7 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-3 overflow-y-auto" style={{ maxHeight: 240 }}>
             {activity.length === 0 && (
               <p className="text-xs" style={{ color: "var(--muted)" }}>
-                Nothing yet — actions across the tenant will appear here instantly.
+                Nothing yet , actions across the tenant will appear here instantly.
               </p>
             )}
             {activity.map((a) => (

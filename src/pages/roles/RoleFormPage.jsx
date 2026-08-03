@@ -200,7 +200,7 @@ export default function RoleFormPage() {
             {isEdit ? "Edit role" : "Add role"}
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-            Real, per-role permissions — exactly what a user with this role can and can't do.
+            Real, per-role permissions exactly what a user with this role can and can't do.
           </p>
         </div>
       </div>

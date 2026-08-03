@@ -62,17 +62,7 @@ export const NAV = [
       { label: "Add respondent", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
     ],
   },
-  {
-    type: "group",
-    key: "assignments",
-    label: "Assignments",
-    icon: Link2,
-    requires: ACTIONS.ASSIGNMENTS_VIEW,
-    children: [
-      { label: "Program assignments", to: "/assignments/programs" },
-      { label: "Respondent assignments", to: "/assignments/beneficiaries" },
-    ],
-  },
+  
   {
     type: "group",
     key: "vehicles",
@@ -84,6 +74,19 @@ export const NAV = [
       { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
     ],
   },
+  
+  {
+    type: "group",
+    key: "assignments",
+    label: "Assignments",
+    icon: Link2,
+    requires: ACTIONS.ASSIGNMENTS_VIEW,
+    children: [
+      { label: "Program assignments", to: "/assignments/programs" },
+      { label: "Respondent assignments", to: "/assignments/beneficiaries" },
+    ],
+  },
+  
   {
     type: "link",
     key: "replacements",

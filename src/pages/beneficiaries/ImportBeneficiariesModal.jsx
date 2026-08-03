@@ -57,7 +57,7 @@ export default function ImportBeneficiariesModal({ onClose, onImported }) {
           Upload an .xlsx file to bulk-create respondents. Not sure of the column layout? Download the template first.
         </p>
 
-        <button
+        {/* <button
           type="button"
           className="btn-secondary w-full mb-4"
           onClick={handleTemplateDownload}
@@ -65,7 +65,7 @@ export default function ImportBeneficiariesModal({ onClose, onImported }) {
         >
           <Download size={15} />
           {downloadingTemplate ? "Preparing…" : "Download blank template"}
-        </button>
+        </button> */}
 
         <label
           className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 py-8 cursor-pointer transition-colors"

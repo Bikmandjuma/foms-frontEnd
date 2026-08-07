@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, Sun, Moon, ChevronDown, Settings, LogOut, UserCircle, Bell, CheckCheck, Repeat, UserPlus, Info } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { resolveAssetUrl } from "../api/client.js";
 import { useNotifications } from "../context/NotificationContext.jsx";
 import { usePermissions } from "../permissions/usePermissions.js";
 import { ACTIONS } from "../permissions/permissions.js";
@@ -179,6 +180,7 @@ export default function Topbar({ title, onOpenMobileNav }) {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+  const avatarSrc = resolveAssetUrl(user?.avatarUrl);
 
   async function handleLogout() {
     setOpen(false);
@@ -215,8 +217,11 @@ export default function Topbar({ title, onOpenMobileNav }) {
             className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-xl cursor-pointer"
             style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
           >
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold" style={{ backgroundColor: "var(--violet)", color: "white" }}>
-              {initials}
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold overflow-hidden"
+              style={{ backgroundColor: "var(--violet)", color: "white", border: "1px solid var(--border)" }}
+            >
+              {avatarSrc ? <img src={avatarSrc} alt="" className="w-full h-full object-cover" /> : initials}
             </div>
             <span className="hidden sm:block text-sm max-w-[140px] truncate" style={{ color: "var(--text)" }}>
               {user?.name || user?.email}

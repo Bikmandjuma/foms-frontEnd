@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Field, TextInput, SelectInput } from "../../components/FormField.jsx";
+import GeoCascadeSelect from "../../components/GeoCascadeSelect.jsx";
 import { beneficiariesApi } from "../../api/beneficiaries.api.js";
 import { programsApi } from "../../api/programs.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
@@ -161,25 +162,17 @@ export default function BeneficiaryFormPage() {
           </Field>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Field label="Province">
-            <TextInput value={form.province} onChange={(e) => update("province", e.target.value)} />
-          </Field>
-          <Field label="District">
-            <TextInput value={form.district} onChange={(e) => update("district", e.target.value)} />
-          </Field>
-          <Field label="Sector">
-            <TextInput value={form.sector} onChange={(e) => update("sector", e.target.value)} />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Cell">
-            <TextInput value={form.cell} onChange={(e) => update("cell", e.target.value)} />
-          </Field>
-          <Field label="Village" hint="Cell and village power the replacement-matching engine , the more precise, the better the suggested replacements.">
-            <TextInput value={form.village} onChange={(e) => update("village", e.target.value)} />
-          </Field>
+        <div className="pt-1" style={{ borderTop: "1px solid var(--border)" }}>
+          <p className="text-xs font-medium uppercase tracking-widest mt-4 mb-1" style={{ color: "var(--muted)" }}>
+            Address
+          </p>
+          <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>
+            Cell and village power the replacement-matching engine the more precise, the better the suggested replacements.
+          </p>
+          <GeoCascadeSelect
+            value={{ province: form.province, district: form.district, sector: form.sector, cell: form.cell, village: form.village }}
+            onChange={(next) => setForm((f) => ({ ...f, ...next }))}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

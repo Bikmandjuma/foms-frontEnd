@@ -11,6 +11,9 @@ import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { ACTIONS } from "./permissions/permissions.js";
 
 import LoginPage from "./pages/LoginPage.jsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
+import VerifyResetCodePage from "./pages/VerifyResetCodePage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import UsersListPage from "./pages/users/UsersListPage.jsx";
 import UserViewPage from "./pages/users/UserViewPage.jsx";
@@ -30,6 +33,8 @@ import FieldMonitoringPage from "./pages/monitoring/FieldMonitoringPage.jsx";
 import ActivityLogsPage from "./pages/activity/ActivityLogsPage.jsx";
 import TenantsListPage from "./pages/tenants/TenantsListPage.jsx";
 import TenantFormPage from "./pages/tenants/TenantFormPage.jsx";
+import TenantAdminsPage from "./pages/tenants/TenantAdminsPage.jsx";
+import TenantOverviewPage from "./pages/tenants/TenantOverviewPage.jsx";
 import SettingsPage from "./pages/settings/SettingsPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
@@ -44,6 +49,9 @@ export default function App() {
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Routes>
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/verify-reset-code" element={<VerifyResetCodePage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                   <Route
                     path="/"
@@ -88,6 +96,8 @@ export default function App() {
                     <Route path="tenants" element={<ProtectedRoute requires={ACTIONS.TENANTS_VIEW}><TenantsListPage /></ProtectedRoute>} />
                     <Route path="tenants/new" element={<ProtectedRoute requires={ACTIONS.TENANTS_MANAGE}><TenantFormPage /></ProtectedRoute>} />
                     <Route path="tenants/:id/edit" element={<ProtectedRoute requires={ACTIONS.TENANTS_MANAGE}><TenantFormPage /></ProtectedRoute>} />
+                    <Route path="tenant-admins" element={<ProtectedRoute requires={ACTIONS.TENANTS_VIEW}><TenantAdminsPage /></ProtectedRoute>} />
+                    <Route path="tenants/:id/overview" element={<ProtectedRoute requires={ACTIONS.TENANTS_VIEW}><TenantOverviewPage /></ProtectedRoute>} />
 
                     <Route path="settings" element={<SettingsPage />} />
 

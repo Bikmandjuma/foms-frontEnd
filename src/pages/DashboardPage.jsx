@@ -13,9 +13,14 @@ import { useTheme } from "../context/ThemeContext.jsx";
 import { usePermissions } from "../permissions/usePermissions.js";
 import { ACTIONS } from "../permissions/permissions.js";
 import { dashboardApi } from "../api/dashboard.api.js";
+import { resolveAssetUrl } from "../api/client.js";
+import OnlineUsersModal from "../components/OnlineUsersModal.jsx";
+import MetricPeriodSelector from "../components/MetricPeriodSelector.jsx";
+import LiveOnlineUsersBarChart from "../components/LiveOnlineUsersBarChart.jsx";
 
 const ACCENTS_LIGHT = { violet: "#6C5CE7", teal: "#12B5A6", amber: "#D98A0E", rose: "#E1495C" };
 const ACCENTS_DARK = { violet: "#6C5CE7", teal: "#2DD4BF", amber: "#FFB020", rose: "#FB7185" };
+const CHART_COLORS = (accents) => [accents.violet, accents.teal, accents.amber, accents.rose, "#8B92A5", "#3A4155", "#C6CAD6"];
 
 function StatCard({ icon: Icon, label, value, accent }) {
   return (
@@ -61,11 +66,24 @@ export default function DashboardPage() {
   const { socket } = useSocket();
   const { isDark } = useTheme();
   const accents = isDark ? ACCENTS_DARK : ACCENTS_LIGHT;
+  const CHART_PALETTE = CHART_COLORS(accents);
 
   const [summary, setSummary] = useState(null);
   const [activity, setActivity] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [onlineModalOpen, setOnlineModalOpen] = useState(false);
+
+  // The configurable bar/circle chart pair — one metric+period selection
+  // drives both, per spec ("even on circle graph").
+  const [metric, setMetric] = useState("checkins");
+  const [period, setPeriod] = useState("week");
+  const [chart, setChart] = useState(null);
+  const [chartLoading, setChartLoading] = useState(true);
+
+  // "Who's online" needs actual names, not raw ids — fetched once and
+  // refreshed whenever presence changes, so it stays in sync live.
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,6 +102,31 @@ export default function DashboardPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setChartLoading(true);
+    dashboardApi
+      .chart(metric, period)
+      .then((data) => !cancelled && setChart(data))
+      .catch(() => !cancelled && setChart(null))
+      .finally(() => !cancelled && setChartLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [metric, period]);
+
+  useEffect(() => {
+    let cancelled = false;
+    dashboardApi
+      .onlineUsers()
+      .then((data) => !cancelled && setOnlineUsers(data))
+      .catch(() => !cancelled && setOnlineUsers([]));
+    return () => {
+      cancelled = true;
+    };
+    // Refresh the name list whenever the live count changes (someone joined/left).
+  }, [onlineCount]);
+
   // Live activity feed — the exact same event the Activity Logs page listens
   // to, so this dashboard widget updates the instant anything happens
   // anywhere in the tenant (an assignment, an approval, a new user...).
@@ -97,17 +140,11 @@ export default function DashboardPage() {
   }, [socket]);
 
   const counts = summary?.counts || {};
-  const checkInSeries = summary?.checkInSeries || [];
-  const outcomeData = (summary?.beneficiariesByOutcome || []).map((o) => ({
-    name: o.outcome.replaceAll("_", " "),
-    value: o.count,
-  }));
   const statusData = (summary?.programsByStatus || []).map((s) => ({
     status: s.status.replaceAll("_", " "),
     count: s.count,
   }));
-
-  const OUTCOME_COLORS = [accents.teal, accents.violet, accents.amber, accents.rose, "#8B92A5", "#3A4155", "#C6CAD6"];
+  const chartSeries = chart?.series || [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -122,9 +159,10 @@ export default function DashboardPage() {
               : `${user?.tenant?.name || "Your tenant"} workspace overview.`}
           </p>
         </div>
-        <div
+        <button
+          onClick={() => setOnlineModalOpen(true)}
           className="flex items-center gap-2 px-3 py-2 rounded-xl"
-          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
+          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", cursor: "pointer" }}
         >
           <span className="live-presence-dot" />
           <Wifi size={14} color="var(--muted)" />
@@ -134,7 +172,7 @@ export default function DashboardPage() {
           <span className="text-xs" style={{ color: "var(--muted)" }}>
             online now
           </span>
-        </div>
+        </button>
       </div>
 
       {error && (
@@ -154,47 +192,57 @@ export default function DashboardPage() {
         {can(ACTIONS.ROLES_VIEW) && <StatCard icon={ShieldCheck} label="Roles" value={counts.roles} accent={accents.amber} />}
       </div>
 
-      {/* Charts row */}
+      {/* Configurable chart row — one metric+period selection drives both */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 card p-5">
-          <p className="text-sm font-semibold mb-1" style={{ color: "var(--text)" }}>
-            Field check-ins, last 7 days
-          </p>
-          <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
-            Duty-of-care activity across the whole tenant
-          </p>
+          <div className="flex items-start justify-between flex-wrap gap-3 mb-1">
+            <div>
+              <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+                {chart?.title || "Loading…"}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+                {chart?.subtitle || ""}
+              </p>
+            </div>
+            <MetricPeriodSelector metric={metric} period={period} onMetricChange={setMetric} onPeriodChange={setPeriod} />
+          </div>
           <div style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={checkInSeries} margin={{ left: -20, right: 10 }}>
+              <AreaChart data={chartSeries} margin={{ left: -20, right: 10, top: 16 }}>
                 <defs>
-                  <linearGradient id="checkinGrad" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="mainChartGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={accents.violet} stopOpacity={0.4} />
                     <stop offset="100%" stopColor={accents.violet} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="day" stroke="var(--muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" stroke="var(--muted)" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--muted)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }} />
-                <Area type="monotone" dataKey="checkIns" stroke={accents.violet} strokeWidth={2.5} fill="url(#checkinGrad)" />
+                <Area type="monotone" dataKey="count" stroke={accents.violet} strokeWidth={2.5} fill="url(#mainChartGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
+          {chartLoading && (
+            <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
+              Loading…
+            </p>
+          )}
         </div>
 
         <div className="card p-5 flex flex-col">
           <p className="text-sm font-semibold mb-1" style={{ color: "var(--text)" }}>
-            Respondent outcomes
+            {chart?.title || "Loading…"}
           </p>
           <p className="text-xs mb-2" style={{ color: "var(--muted)" }}>
-            {counts.beneficiaries ?? 0} respondents tracked
+            Same selection, by share
           </p>
           <div style={{ height: 180 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={outcomeData} dataKey="value" innerRadius={52} outerRadius={78} paddingAngle={3} stroke="none">
-                  {outcomeData.map((_, i) => (
-                    <Cell key={i} fill={OUTCOME_COLORS[i % OUTCOME_COLORS.length]} />
+                <Pie data={chartSeries} dataKey="count" nameKey="label" innerRadius={52} outerRadius={78} paddingAngle={3} stroke="none">
+                  {chartSeries.map((_, i) => (
+                    <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }} />
@@ -202,20 +250,41 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
           <div className="flex flex-col gap-1.5 mt-2 overflow-y-auto" style={{ maxHeight: 90 }}>
-            {outcomeData.map((o, i) => (
-              <div key={o.name} className="flex items-center justify-between text-xs">
+            {chartSeries.map((s, i) => (
+              <div key={s.label} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2" style={{ color: "var(--muted)" }}>
-                  <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: OUTCOME_COLORS[i % OUTCOME_COLORS.length] }} />
-                  {o.name}
+                  <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: CHART_PALETTE[i % CHART_PALETTE.length] }} />
+                  {s.label}
                 </div>
                 <span className="mono" style={{ color: "var(--text)" }}>
-                  {o.value}
+                  {s.count}
                 </span>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Live online-users strip chart */}
+      {/* <div className="card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+              Online users, live
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+              A new reading every few seconds , bars scroll left as time passes
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="live-presence-dot" />
+            <span className="text-xs" style={{ color: "var(--muted)" }}>
+              Live
+            </span>
+          </div>
+        </div>
+        <LiveOnlineUsersBarChart />
+      </div> */}
 
       {/* Bottom row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -233,6 +302,11 @@ export default function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          {statusData.length === 0 && (
+            <p className="text-xs text-center mt-2" style={{ color: "var(--muted)" }}>
+              No programs yet.
+            </p>
+          )}
         </div>
 
         <div className="card p-5 flex flex-col">
@@ -250,7 +324,7 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-3 overflow-y-auto" style={{ maxHeight: 240 }}>
             {activity.length === 0 && (
               <p className="text-xs" style={{ color: "var(--muted)" }}>
-                Nothing yet , actions across the tenant will appear here instantly.
+                Nothing yet ,actions across the tenant will appear here instantly.
               </p>
             )}
             {activity.map((a) => (
@@ -272,7 +346,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="card p-5">
+        {/* <button
+          onClick={() => setOnlineModalOpen(true)}
+          className="card p-5 text-left"
+          style={{ cursor: "pointer" }}
+        >
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
               Who's online
@@ -282,19 +360,67 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex flex-col gap-2">
-            {onlineUserIds.length === 0 && (
+            {onlineUsers.length === 0 && (
               <p className="text-xs" style={{ color: "var(--muted)" }}>
                 Just you, so far.
               </p>
             )}
-            {onlineUserIds.slice(0, 8).map((id) => (
-              <div key={id} className="flex items-center gap-2 text-xs">
-                <span className="live-presence-dot" />
-                <span className="mono" style={{ color: "var(--text)" }}>
-                  {id === user?.id ? "You" : `User ${id.slice(0, 8)}`}
-                </span>
-              </div>
-            ))}
+            {onlineUsers.slice(0, 6).map((u) => {
+              const avatarSrc = resolveAssetUrl(u.avatarUrl);
+              return (
+                <div key={u.id} className="flex items-center gap-2 text-xs">
+                  <span className="live-presence-dot flex-shrink-0" />
+                  <div
+                    className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-semibold flex-shrink-0 overflow-hidden"
+                    style={{ backgroundColor: "var(--violet)", color: "white" }}
+                  >
+                    {avatarSrc ? <img src={avatarSrc} alt="" className="w-full h-full object-cover" /> : (u.name || u.email || "?")[0]?.toUpperCase()}
+                  </div>
+                  <span className="truncate" style={{ color: "var(--text)" }}>
+                    {u.id === user?.id ? "You" : u.name || u.email}
+                  </span>
+                </div>
+              );
+            })}
+            {onlineUsers.length > 6 && (
+              <p className="text-xs mt-1" style={{ color: "var(--violet)" }}>
+                +{onlineUsers.length - 6} more — click to see everyone
+              </p>
+            )}
+          </div>
+        </button> */}
+
+        
+        <div className="card p-5" onClick={() => setOnlineModalOpen(true)}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Who's online</p>
+            <span className="mono text-xs" style={{ color: "var(--muted)" }}>{onlineCount} connected</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {onlineUsers.length === 0 && (
+              <p className="text-xs" style={{ color: "var(--muted)" }}>Just you, so far.</p>
+            )}
+            {onlineUsers.slice(0, 6).map((u) => {
+              const avatarSrc = resolveAssetUrl(u.avatarUrl);
+              return (
+                <div key={u.id} className="flex items-center gap-2 text-xs">
+                  <span className="live-presence-dot flex-shrink-0" />
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0 overflow-hidden"
+                    style={{ backgroundColor: "var(--violet)", color: "#fff" }}
+                  >
+                    {avatarSrc ? (
+                      <img src={avatarSrc} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      (u.name || u.email || "?")[0]?.toUpperCase()
+                    )}
+                  </div>
+                  <span className="truncate" style={{ color: "var(--text)" }}>
+                    {u.id === user?.id ? "You" : u.name || u.email}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -304,6 +430,8 @@ export default function DashboardPage() {
           Loading dashboard…
         </p>
       )}
+
+      <OnlineUsersModal open={onlineModalOpen} onClose={() => setOnlineModalOpen(false)} />
     </div>
   );
 }

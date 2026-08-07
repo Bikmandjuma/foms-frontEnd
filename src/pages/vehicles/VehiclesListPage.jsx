@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Truck, Bike } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
 import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
+import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
 import { vehiclesApi } from "../../api/vehicles.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
@@ -20,7 +21,8 @@ export default function VehiclesListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [pendingDelete, setPendingDelete] = useState(null);
-  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(rows, 10);
+  const { filtered, query, setQuery } = useSearchedRows(rows, ["name", "driverName", "type"]);
+  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
 
   async function load() {
     setLoading(true);
@@ -124,6 +126,7 @@ export default function VehiclesListPage() {
         )}
       </div>
 
+      <SearchInput value={query} onChange={setQuery} placeholder="Search vehicles by name, driver, or type…" />
       {error && (
         <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}>
           {error}
@@ -132,7 +135,7 @@ export default function VehiclesListPage() {
 
       <div className="card">
         <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No vehicles yet , add one if this deployment uses transport." />
-        <Pagination page={page} pageSize={pageSize} total={rows.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
+        <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       <ConfirmDialog

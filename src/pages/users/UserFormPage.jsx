@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Field, TextInput, SelectInput } from "../../components/FormField.jsx";
+import GeoCascadeSelect from "../../components/GeoCascadeSelect.jsx";
 import { usersApi } from "../../api/users.api.js";
 import { rolesApi } from "../../api/roles.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
@@ -16,11 +17,14 @@ const EMPTY = {
   email: "",
   password: "",
   roleId: "",
-  name: "",
+  firstName: "",
+  lastName: "",
   telephone: "",
   province: "",
   district: "",
   sector: "",
+  cell: "",
+  village: "",
   gender: "",
   dateOfBirth: "",
   status: "ACTIVE",
@@ -61,11 +65,14 @@ export default function UserFormPage() {
             email: u.email || "",
             password: "",
             roleId: u.roleId || "",
-            name: u.name || "",
+            firstName: u.firstName || (u.name ? u.name.split(" ")[0] : ""),
+            lastName: u.lastName || (u.name ? u.name.split(" ").slice(1).join(" ") : ""),
             telephone: u.telephone || "",
             province: u.province || "",
             district: u.district || "",
             sector: u.sector || "",
+            cell: u.cell || "",
+            village: u.village || "",
             gender: u.gender || "",
             dateOfBirth: u.dateOfBirth ? u.dateOfBirth.slice(0, 10) : "",
             status: u.status || "ACTIVE",
@@ -165,8 +172,17 @@ export default function UserFormPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Full name">
-            <TextInput value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Jane Uwimana" />
+          <Field label="First name">
+            <TextInput value={form.firstName} onChange={(e) => update("firstName", e.target.value)} placeholder="Jane" />
+          </Field>
+          <Field label="Last name">
+            <TextInput value={form.lastName} onChange={(e) => update("lastName", e.target.value)} placeholder="Uwimana" />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Telephone">
+            <TextInput value={form.telephone} onChange={(e) => update("telephone", e.target.value)} placeholder="+250…" />
           </Field>
           <Field label="Role" required={canEditRoleAndStatus}>
             {canEditRoleAndStatus ? (
@@ -188,9 +204,6 @@ export default function UserFormPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Field label="Telephone">
-            <TextInput value={form.telephone} onChange={(e) => update("telephone", e.target.value)} placeholder="+250…" />
-          </Field>
           <Field label="Gender">
             <SelectInput value={form.gender} onChange={(e) => update("gender", e.target.value)}>
               <option value="" className="text-black">—</option>
@@ -204,36 +217,6 @@ export default function UserFormPage() {
           <Field label="Date of birth">
             <TextInput type="date" value={form.dateOfBirth} onChange={(e) => update("dateOfBirth", e.target.value)} />
           </Field>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Field label="Province">
-            <TextInput value={form.province} onChange={(e) => update("province", e.target.value)} />
-          </Field>
-          <Field label="District">
-            <TextInput value={form.district} onChange={(e) => update("district", e.target.value)} />
-          </Field>
-          <Field label="Sector">
-            <TextInput value={form.sector} onChange={(e) => update("sector", e.target.value)} />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Status">
-            {canEditRoleAndStatus ? (
-              <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
-                {STATUSES.map((s) => (
-                  <option key={s} value={s} className="text-black">
-                    {s}
-                  </option>
-                ))}
-              </SelectInput>
-            ) : (
-              <div className="field" style={{ color: "var(--muted)" }}>
-                {form.status}
-              </div>
-            )}
-          </Field>
           <Field label="Education level">
             <SelectInput value={form.educationLevel} onChange={(e) => update("educationLevel", e.target.value)}>
               <option value="">—</option>
@@ -245,6 +228,32 @@ export default function UserFormPage() {
             </SelectInput>
           </Field>
         </div>
+
+        <div className="pt-1" style={{ borderTop: "1px solid var(--border)" }}>
+          <p className="text-xs font-medium uppercase tracking-widest mt-4 mb-3" style={{ color: "var(--muted)" }}>
+            Address
+          </p>
+          <GeoCascadeSelect
+            value={{ province: form.province, district: form.district, sector: form.sector, cell: form.cell, village: form.village }}
+            onChange={(next) => setForm((f) => ({ ...f, ...next }))}
+          />
+        </div>
+
+        <Field label="Status">
+          {canEditRoleAndStatus ? (
+            <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
+              {STATUSES.map((s) => (
+                <option key={s} value={s} className="text-black">
+                  {s}
+                </option>
+              ))}
+            </SelectInput>
+          ) : (
+            <div className="field" style={{ color: "var(--muted)" }}>
+              {form.status}
+            </div>
+          )}
+        </Field>
 
         <div className="flex justify-end gap-3 pt-2">
           <Link to="/users" className="btn-secondary">

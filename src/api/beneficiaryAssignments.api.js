@@ -6,4 +6,5 @@ export const beneficiaryAssignmentsApi = {
   autoAssign: (payload) => client.post("/beneficiary-assignments/auto-assign", payload),
   end: (id) => client.post(`/beneficiary-assignments/${id}/end`),
   remove: (id) => client.delete(`/beneficiary-assignments/${id}`),
+  report: (params) => client.get("/beneficiary-assignments/report", { params, responseType: "blob" }),
 };

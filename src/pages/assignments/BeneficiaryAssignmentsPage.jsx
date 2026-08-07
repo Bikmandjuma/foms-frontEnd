@@ -1,31 +1,23 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Plus, Square, Trash2, Wand2, ClipboardList, Search, Shuffle, Target, Scale, Truck, Bike, Footprints, Bus, Ban, ExternalLink } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Wand2, ClipboardList, UserPlus, Truck, Download, Trash2, Square, AlertTriangle } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
-import { Field, SelectInput, TextInput } from "../../components/FormField.jsx";
-import { Link } from "react-router-dom";
+import { Field, SelectInput } from "../../components/FormField.jsx";
 import { beneficiaryAssignmentsApi } from "../../api/beneficiaryAssignments.api.js";
+import { programAssignmentsApi } from "../../api/programAssignments.api.js";
 import { usersApi } from "../../api/users.api.js";
-import { beneficiariesApi } from "../../api/beneficiaries.api.js";
 import { programsApi } from "../../api/programs.api.js";
 import { vehiclesApi } from "../../api/vehicles.api.js";
+import { downloadBlob } from "../../utils/downloadBlob.js";
 import { useToast } from "../../context/ToastContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
 import { ACTIONS } from "../../permissions/permissions.js";
 
-const STRATEGIES = [
-  { value: "EVEN", label: "Even split", icon: Scale, hint: "Divide the eligible respondents as equally as possible." },
-  { value: "DAILY_TARGET", label: "Daily target", icon: Target, hint: "Cap each enumerator at a fixed number; the rest queue for next time." },
-  { value: "RANDOM", label: "Random top-up", icon: Shuffle, hint: "Same shuffle, no even-split guarantee , good for ad-hoc top-ups." },
-];
-
-const TRANSPORT_MODES = [
-  { value: "NONE", label: "None", icon: Ban },
-  { value: "VEHICLE", label: "Vehicle", icon: Truck },
-  { value: "MOTORCYCLE", label: "Motorcycle", icon: Bike },
-  { value: "WALKING", label: "Walking", icon: Footprints },
-  { value: "PUBLIC_TRANSPORT", label: "Public transport", icon: Bus },
+const REPORT_FORMATS = [
+  { value: "xlsx", label: "Excel" },
+  { value: "csv", label: "CSV" },
+  { value: "pdf", label: "PDF" },
 ];
 
 export default function BeneficiaryAssignmentsPage() {
@@ -35,153 +27,128 @@ export default function BeneficiaryAssignmentsPage() {
   const canEdit = can(ACTIONS.ASSIGNMENTS_EDIT);
   const canDelete = can(ACTIONS.ASSIGNMENTS_DELETE);
 
-  const [rows, setRows] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [beneficiaries, setBeneficiaries] = useState([]);
   const [programs, setPrograms] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [allVehicles, setAllVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [pendingDelete, setPendingDelete] = useState(null);
 
-  // Manual single assignment (still handy for one-off corrections).
-  const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ userId: "", beneficiaryId: "" });
+  // Step 1 — program + auto-detected enumerators.
+  const [programId, setProgramId] = useState("");
+  const [enumerators, setEnumerators] = useState(null); // null = not checked yet
+  const [checkingEnumerators, setCheckingEnumerators] = useState(false);
+  const [assigningEnumeratorId, setAssigningEnumeratorId] = useState("");
+  const [assigningEnumerator, setAssigningEnumerator] = useState(false);
 
-  // Smart assignment engine.
-  const [engineProgramId, setEngineProgramId] = useState("");
-  const [engineUserIds, setEngineUserIds] = useState([]);
-  const [userSearch, setUserSearch] = useState("");
-  const [strategy, setStrategy] = useState("EVEN");
-  const [dailyTarget, setDailyTarget] = useState("");
-  const [onlyUnassigned, setOnlyUnassigned] = useState(true);
-  const [running, setRunning] = useState(false);
-  const [engineResult, setEngineResult] = useState(null);
-
-  // Transport is entirely optional — PRD: "the vehicle is just in case, but
-  // where there isn't [one]... the vehicle should be optional, not a
-  // requirement." Defaults to NONE, which behaves exactly like before.
-  const [transportMode, setTransportMode] = useState("NONE");
-  const [vehicles, setVehicles] = useState([]);
+  // Step 2 — vehicles for this run.
   const [selectedVehicleIds, setSelectedVehicleIds] = useState([]);
-  const [vehicleRiders, setVehicleRiders] = useState({}); // { [vehicleId]: userId[] }
 
-  async function loadVehicles() {
-    try {
-      setVehicles(await vehiclesApi.list({ active: true }));
-    } catch {
-      // Not everyone has vehicles:view — the transport picker just won't
-      // offer any vehicles rather than breaking the rest of the page.
-      setVehicles([]);
-    }
-  }
+  // Step 3 — run the engine.
+  const [running, setRunning] = useState(false);
+  const [runResult, setRunResult] = useState(null); // { program, enumerators, vehicles, totalAssigned, leftover }
+  const [activeVehicleId, setActiveVehicleId] = useState(null);
+  const [reportFormat, setReportFormat] = useState("xlsx");
+  const [downloading, setDownloading] = useState(false);
 
-  async function loadAll() {
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [rows, setRows] = useState([]);
+  const [rowsLoading, setRowsLoading] = useState(true);
+
+  async function loadStatic() {
     setLoading(true);
     setError("");
     try {
-      const [assignments, userList, beneficiaryList, programList] = await Promise.all([
-        beneficiaryAssignmentsApi.list(),
-        usersApi.list(),
-        beneficiariesApi.list(),
+      const [programList, userList, vehicleList] = await Promise.all([
         programsApi.list(),
+        usersApi.list(),
+        vehiclesApi.list({ active: true }),
       ]);
-      setRows(assignments);
-      setUsers(userList);
-      setBeneficiaries(beneficiaryList);
       setPrograms(programList);
+      setUsers(userList);
+      setAllVehicles(vehicleList);
     } catch (err) {
-      setError(err.message || "Couldn't load beneficiary assignments.");
+      setError(err.message || "Couldn't load programs, users, or vehicles.");
     } finally {
       setLoading(false);
     }
   }
 
+  async function loadRows(vehicleId) {
+    setRowsLoading(true);
+    try {
+      setRows(await beneficiaryAssignmentsApi.list({ status: "ACTIVE", ...(vehicleId ? { vehicleId } : {}) }));
+    } catch (err) {
+      setError(err.message || "Couldn't load assignments.");
+    } finally {
+      setRowsLoading(false);
+    }
+  }
+
   useEffect(() => {
-    loadAll();
-    loadVehicles();
+    loadStatic();
+    loadRows();
   }, []);
 
-  const filteredUsers = useMemo(() => {
-    const q = userSearch.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter((u) => (u.name || "").toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
-  }, [users, userSearch]);
-
-  function toggleEngineUser(userId) {
-    setEngineUserIds((ids) => (ids.includes(userId) ? ids.filter((id) => id !== userId) : [...ids, userId]));
-  }
-
-  const vehiclesForMode = useMemo(
-    () => vehicles.filter((v) => v.type === transportMode),
-    [vehicles, transportMode]
-  );
-  const usesTransport = transportMode === "VEHICLE" || transportMode === "MOTORCYCLE";
-
-  function toggleVehicle(vehicleId) {
-    setSelectedVehicleIds((ids) => {
-      if (ids.includes(vehicleId)) {
-        setVehicleRiders((r) => {
-          const next = { ...r };
-          delete next[vehicleId];
-          return next;
-        });
-        return ids.filter((id) => id !== vehicleId);
-      }
-      return [...ids, vehicleId];
-    });
-  }
-
-  function toggleRider(vehicleId, userId) {
-    setVehicleRiders((r) => {
-      const current = r[vehicleId] || [];
-      const next = current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId];
-      return { ...r, [vehicleId]: next };
-    });
-  }
-
+  // Step 1: whenever the program changes, auto-detect its enumerators.
   useEffect(() => {
-    setSelectedVehicleIds([]);
-    setVehicleRiders({});
-  }, [transportMode]);
+    setRunResult(null);
+    setEnumerators(null);
+    if (!programId) return;
+    let cancelled = false;
+    setCheckingEnumerators(true);
+    programAssignmentsApi
+      .list({ programId, status: "ACTIVE" })
+      .then((assignments) => {
+        if (cancelled) return;
+        setEnumerators(assignments.map((a) => a.user));
+      })
+      .catch(() => !cancelled && setEnumerators([]))
+      .finally(() => !cancelled && setCheckingEnumerators(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [programId]);
 
-  async function handleRunEngine(e) {
+  function toggleVehicle(id) {
+    setSelectedVehicleIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  }
+
+  async function handleAssignEnumerator(e) {
     e.preventDefault();
-    if (!engineProgramId || engineUserIds.length === 0) return;
-    if (usesTransport && selectedVehicleIds.length > 0) {
-      const missingRiders = selectedVehicleIds.filter((id) => !(vehicleRiders[id]?.length > 0));
-      if (missingRiders.length > 0) {
-        setError("Every selected vehicle needs at least one enumerator riding it.");
-        return;
-      }
+    if (!assigningEnumeratorId || !programId) return;
+    setAssigningEnumerator(true);
+    setError("");
+    try {
+      await programAssignmentsApi.create({ userId: assigningEnumeratorId, programId });
+      toast.success("Enumerator assigned to this program");
+      setAssigningEnumeratorId("");
+      const assignments = await programAssignmentsApi.list({ programId, status: "ACTIVE" });
+      setEnumerators(assignments.map((a) => a.user));
+    } catch (err) {
+      setError(err.message || "Couldn't assign this enumerator.");
+    } finally {
+      setAssigningEnumerator(false);
     }
+  }
+
+  async function handleRunEngine() {
+    if (!programId || selectedVehicleIds.length === 0) return;
     setRunning(true);
     setError("");
-    setEngineResult(null);
     try {
-      const payload = {
-        programId: engineProgramId,
-        userIds: engineUserIds,
-        strategy,
-        onlyUnassigned,
-        transportMode,
-        ...(strategy === "DAILY_TARGET" && dailyTarget ? { dailyTarget: Number(dailyTarget) } : {}),
-        ...(usesTransport && selectedVehicleIds.length > 0
-          ? { vehicles: selectedVehicleIds.map((id) => ({ vehicleId: id, userIds: vehicleRiders[id] || [] })) }
-          : {}),
-      };
-      const res = await beneficiaryAssignmentsApi.autoAssign(payload);
-      setEngineResult(res);
-      if (res.totalAssigned === 0) {
+      const result = await beneficiaryAssignmentsApi.autoAssign({ programId, vehicleIds: selectedVehicleIds });
+      setRunResult(result);
+      setActiveVehicleId(result.vehicles[0]?.vehicleId ?? null);
+      if (result.totalAssigned === 0) {
         toast.info(
-          res.totalCandidates === 0
-            ? "No eligible respondents everyone enrolled in this program already has an active caseworker (or none are enrolled yet). Try unchecking \"only unassigned\", or add respondents to the program first."
-            : "No respondents were assigned check your daily target, or the vehicles' capacity if transport is selected.",
-          7000
+          result.totalCandidates === 0
+            ? "No eligible respondents — everyone enrolled in this program already has an active caseworker, or none are enrolled yet."
+            : "No respondents were assigned — check the vehicles' capacity."
         );
       } else {
-        toast.success(`Assigned ${res.totalAssigned} respondent(s) across ${engineUserIds.length} enumerator(s)`);
+        toast.success(`Assigned ${result.totalAssigned} respondent(s) across ${result.vehicles.length} vehicle(s)`);
       }
-      loadAll();
+      loadRows(activeVehicleId);
     } catch (err) {
       setError(err.message || "Couldn't run the assignment engine.");
     } finally {
@@ -189,28 +156,28 @@ export default function BeneficiaryAssignmentsPage() {
     }
   }
 
-  async function handleCreate(e) {
-    e.preventDefault();
-    if (!form.userId || !form.beneficiaryId) return;
-    setCreating(true);
-    setError("");
+  async function handleDownloadReport() {
+    if (!programId) return;
+    setDownloading(true);
     try {
-      const created = await beneficiaryAssignmentsApi.create(form);
-      setRows((r) => [created, ...r]);
-      toast.success("Beneficiary assigned");
-      setForm({ userId: "", beneficiaryId: "" });
+      const blob = await beneficiaryAssignmentsApi.report({
+        programId,
+        ...(activeVehicleId ? { vehicleId: activeVehicleId } : {}),
+        format: reportFormat,
+      });
+      downloadBlob(blob, `assignment-report.${reportFormat}`);
     } catch (err) {
-      setError(err.message || "Couldn't create assignment.");
+      toast.error(err.message || "Couldn't download that report.");
     } finally {
-      setCreating(false);
+      setDownloading(false);
     }
   }
 
   async function handleEnd(row) {
     try {
-      const updated = await beneficiaryAssignmentsApi.end(row.id);
-      setRows((r) => r.map((a) => (a.id === row.id ? updated : a)));
+      await beneficiaryAssignmentsApi.end(row.id);
       toast.success("Assignment ended");
+      loadRows(activeVehicleId);
     } catch (err) {
       setError(err.message || "Couldn't end assignment.");
     }
@@ -229,11 +196,15 @@ export default function BeneficiaryAssignmentsPage() {
     }
   }
 
-  const columns = [
-    { key: "user", label: "User (caseworker)", render: (r) => r.user?.name || r.user?.email },
+  const noEnumerator = enumerators !== null && enumerators.length === 0;
+  const activeVehicle = runResult?.vehicles.find((v) => v.vehicleId === activeVehicleId);
+
+  const historyColumns = [
+    { key: "user", label: "Enumerator", render: (r) => r.user?.name || r.user?.email },
     { key: "beneficiary", label: "Beneficiary", render: (r) => `${r.beneficiary?.name} (${r.beneficiary?.code})` },
+    { key: "vehicle", label: "Vehicle", render: (r) => r.vehicle?.name || "—" },
     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { key: "assignedAt", label: "Assigned", render: (r) => new Date(r.assignedAt).toLocaleDateString() },
+    { key: "assignedAt", label: "Assigned", render: (r) => new Date(r.assignedAt).toLocaleString() },
     ...(canEdit || canDelete
       ? [
           {
@@ -262,10 +233,10 @@ export default function BeneficiaryAssignmentsPage() {
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="display text-xl font-semibold" style={{ color: "var(--text)" }}>
-          Beneficiary assignments
+          Respondent assignments
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          Which users (caseworkers) are responsible for which beneficiaries.
+          Choose a program, choose your vehicle(s), click Random Top-Up.
         </p>
       </div>
 
@@ -276,275 +247,186 @@ export default function BeneficiaryAssignmentsPage() {
       )}
 
       {canCreate && (
-        <form onSubmit={handleRunEngine} className="card p-5 flex flex-col gap-4">
+        <div className="card p-5 flex flex-col gap-5">
           <div className="flex items-center gap-2">
             <Wand2 size={16} color="var(--violet)" />
-            <div>
-              <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-                Smart assignment engine
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-                No vehicle or driver required .just a program, your enumerators, and a strategy. Transport below is
-                entirely optional. Respondents are clustered by geography (province → district → sector → cell →
-                village) before being shuffled, so nearby respondents tend to land with the same enumerator.
-              </p>
-            </div>
+            <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+              Smart assignment engine
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Program" required>
-              <SelectInput icon={ClipboardList} required value={engineProgramId} onChange={(e) => setEngineProgramId(e.target.value)}>
-                <option value="" className="text-black">Select a program…</option>
-                {programs.map((p) => (
-                  <option key={p.id} value={p.id} className="text-black">
-                    {p.name}
-                  </option>
-                ))}
-              </SelectInput>
-            </Field>
+          {/* Step 1: Program */}
+          <Field label="1. Program" required>
+            <SelectInput icon={ClipboardList} required value={programId} onChange={(e) => setProgramId(e.target.value)}>
+              <option value="" className="text-black">
+                Select a program…
+              </option>
+              {programs.map((p) => (
+                <option key={p.id} value={p.id} className="text-black">
+                  {p.name}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
 
-            <Field label="Strategy">
-              <div className="grid grid-cols-3 gap-2">
-                {STRATEGIES.map((s) => {
-                  const Icon = s.icon;
-                  const active = strategy === s.value;
-                  return (
-                    <button
-                      type="button"
-                      key={s.value}
-                      onClick={() => setStrategy(s.value)}
-                      className="flex flex-col items-center gap-1 rounded-xl py-2.5 text-xs font-medium"
-                      style={{
-                        border: `1px solid ${active ? "var(--violet)" : "var(--border)"}`,
-                        backgroundColor: active ? "rgba(108,92,231,0.10)" : "var(--surface-2)",
-                        color: active ? "var(--violet)" : "var(--muted)",
-                      }}
-                      title={s.hint}
-                    >
-                      <Icon size={14} />
-                      {s.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </Field>
-          </div>
+          {checkingEnumerators && (
+            <p className="text-xs" style={{ color: "var(--muted)" }}>
+              Checking for enumerators assigned to this program…
+            </p>
+          )}
 
-          {strategy === "DAILY_TARGET" && (
-            <div className="max-w-xs">
-              <Field label="Daily target per enumerator" hint="Leftover respondents are never dropped run the engine again tomorrow to pick up the queue.">
-                <TextInput icon={Target} type="number" min="1" value={dailyTarget} onChange={(e) => setDailyTarget(e.target.value)} placeholder="e.g. 15" />
-              </Field>
+          {noEnumerator && (
+            <div className="rounded-xl p-4 flex flex-col gap-3" style={{ backgroundColor: "var(--status-suspended-bg)" }}>
+              <p className="text-sm flex items-center gap-2" style={{ color: "var(--status-suspended-fg)" }}>
+                <AlertTriangle size={15} />
+                This program has not yet been assigned to an Enumerator.
+              </p>
+              <form onSubmit={handleAssignEnumerator} className="flex flex-col sm:flex-row gap-3 sm:items-end">
+                <div className="flex-1">
+                  <Field label="Assign an enumerator">
+                    <SelectInput required value={assigningEnumeratorId} onChange={(e) => setAssigningEnumeratorId(e.target.value)}>
+                      <option value="" className="text-black">
+                        Select a user…
+                      </option>
+                      {users.map((u) => (
+                        <option key={u.id} value={u.id} className="text-black">
+                          {u.name || u.email}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </Field>
+                </div>
+                <button type="submit" className="btn-primary" disabled={assigningEnumerator} style={{ height: 44 }}>
+                  <UserPlus size={16} />
+                  Assign Enumerator
+                </button>
+              </form>
             </div>
           )}
 
-          <label className="flex items-center gap-2 text-sm cursor-pointer w-fit" style={{ color: "var(--text)" }}>
-            <input type="checkbox" checked={onlyUnassigned} onChange={(e) => setOnlyUnassigned(e.target.checked)} style={{ width: "auto" }} />
-            Only assign respondents who don't already have an active caseworker
-          </label>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium" style={{ color: "var(--text)" }}>
-              Transport
-              <span className="font-normal ml-1" style={{ color: "var(--muted)" }}>
-                (optional , the engine works fine with none selected)
-              </span>
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {TRANSPORT_MODES.map((t) => {
-                const Icon = t.icon;
-                const active = transportMode === t.value;
-                return (
-                  <button
-                    type="button"
-                    key={t.value}
-                    onClick={() => setTransportMode(t.value)}
-                    className="flex flex-col items-center gap-1 rounded-xl py-2.5 text-xs font-medium"
-                    style={{
-                      border: `1px solid ${active ? "var(--violet)" : "var(--border)"}`,
-                      backgroundColor: active ? "rgba(108,92,231,0.10)" : "var(--surface-2)",
-                      color: active ? "var(--violet)" : "var(--muted)",
-                    }}
-                  >
-                    <Icon size={14} />
-                    {t.label}
-                  </button>
-                );
-              })}
+          {enumerators && enumerators.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {enumerators.map((e) => (
+                <span key={e.id} className="badge" style={{ backgroundColor: "var(--surface-2)", color: "var(--text)" }}>
+                  {e.name || e.email}
+                </span>
+              ))}
             </div>
+          )}
 
-            {usesTransport && (
-              <div className="rounded-xl p-3 mt-1 flex flex-col gap-3" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium" style={{ color: "var(--text)" }}>
-                    {transportMode === "MOTORCYCLE" ? "Motorcycles" : "Vehicles"} for this run
-                  </p>
-                  <Link to="/vehicles/new" className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--violet)" }}>
-                    <ExternalLink size={12} />
-                    Add one
-                  </Link>
-                </div>
-
-                {vehiclesForMode.length === 0 && (
+          {/* Step 2: Vehicles */}
+          {enumerators && enumerators.length > 0 && (
+            <>
+              <Field label="2. Vehicle(s) for this run" required>
+                {allVehicles.length === 0 ? (
                   <p className="text-xs" style={{ color: "var(--muted)" }}>
-                    No {transportMode === "MOTORCYCLE" ? "motorcycles" : "vehicles"} set up yet , add one, or leave transport
-                    on "None" and the engine will assign to enumerators directly.
+                    No vehicles set up yet ,add one under Vehicles first.
                   </p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {allVehicles.map((v) => {
+                      const selected = selectedVehicleIds.includes(v.id);
+                      return (
+                        <label
+                          key={v.id}
+                          className="flex items-center gap-3 rounded-xl p-3 cursor-pointer"
+                          style={{ border: `1px solid ${selected ? "var(--violet)" : "var(--border)"}`, backgroundColor: selected ? "rgba(108,92,231,0.06)" : "var(--surface-2)" }}
+                        >
+                          <input type="checkbox" checked={selected} onChange={() => toggleVehicle(v.id)} style={{ width: "auto" }} />
+                          <Truck size={15} color="var(--muted)" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                              {v.name}
+                            </p>
+                            <p className="text-xs" style={{ color: "var(--muted)" }}>
+                              {v.driverName ? `Driver: ${v.driverName}` : "No driver set"} ·{" "}
+                              {v.capacityPerDay ? `${v.capacityPerDay}/day capacity` : "No capacity cap"}
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
                 )}
+              </Field>
 
-                {vehiclesForMode.map((v) => {
-                  const selected = selectedVehicleIds.includes(v.id);
-                  return (
-                    <div key={v.id} className="rounded-lg p-2.5" style={{ backgroundColor: "var(--surface)", border: `1px solid ${selected ? "var(--violet)" : "var(--border)"}` }}>
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" checked={selected} onChange={() => toggleVehicle(v.id)} style={{ width: "auto" }} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
-                            {v.name}
-                          </p>
-                          <p className="text-xs" style={{ color: "var(--muted)" }}>
-                            {v.driverName ? `Driver: ${v.driverName}` : "No driver set"} ·{" "}
-                            {v.capacityPerDay ? `${v.capacityPerDay}/day` : "No capacity cap"}
-                          </p>
-                        </div>
-                      </label>
-
-                      {selected && (
-                        <div className="mt-2 pl-7 flex flex-wrap gap-2">
-                          {engineUserIds.length === 0 && (
-                            <span className="text-xs" style={{ color: "var(--muted)" }}>
-                              Select enumerators below first, then pick who rides this one.
-                            </span>
-                          )}
-                          {engineUserIds.map((uid) => {
-                            const u = users.find((x) => x.id === uid);
-                            const riding = (vehicleRiders[v.id] || []).includes(uid);
-                            return (
-                              <button
-                                type="button"
-                                key={uid}
-                                onClick={() => toggleRider(v.id, uid)}
-                                className="badge"
-                                style={{
-                                  cursor: "pointer",
-                                  border: `1px solid ${riding ? "var(--violet)" : "var(--border)"}`,
-                                  backgroundColor: riding ? "rgba(108,92,231,0.12)" : "var(--surface-2)",
-                                  color: riding ? "var(--violet)" : "var(--muted)",
-                                }}
-                              >
-                                {u?.name || u?.email || "Unknown"}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              {/* Step 3: Run */}
+              <div className="flex justify-end">
+                <button type="button" className="btn-primary" onClick={handleRunEngine} disabled={running || selectedVehicleIds.length === 0}>
+                  <Wand2 size={16} />
+                  {running ? "Assigning…" : "Random Top-Up"}
+                </button>
               </div>
-            )}
-          </div>
+            </>
+          )}
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium" style={{ color: "var(--text)" }}>
-              Enumerators ({engineUserIds.length} selected)
-            </label>
-            <Field>
-              <TextInput icon={Search} value={userSearch} onChange={(e) => setUserSearch(e.target.value)} placeholder="Filter by name or email…" />
-            </Field>
-            <div
-              className="rounded-xl p-2 flex flex-col gap-1 max-h-56 overflow-y-auto"
-              style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border)" }}
-            >
-              {filteredUsers.map((u) => {
-                const checked = engineUserIds.includes(u.id);
-                return (
-                  <label
-                    key={u.id}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
-                    style={{ backgroundColor: checked ? "rgba(108,92,231,0.10)" : "transparent" }}
+          {/* Result: vehicle tabs */}
+          {runResult && (
+            <div className="flex flex-col gap-3 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <p className="text-sm" style={{ color: "var(--text)" }}>
+                  Assigned <strong>{runResult.totalAssigned}</strong> of {runResult.totalCandidates} eligible respondent(s)
+                  {runResult.leftover > 0 ? ` — ${runResult.leftover} left over for the next run/trip` : ""}.
+                </p>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={reportFormat}
+                    onChange={(e) => setReportFormat(e.target.value)}
+                    className="text-xs font-medium rounded-lg px-2 py-1.5 border"
+                    style={{ backgroundColor: "var(--surface-2)", color: "var(--text)", borderColor: "var(--border)" }}
                   >
-                    <input type="checkbox" checked={checked} onChange={() => toggleEngineUser(u.id)} style={{ width: "auto" }} />
-                    <span className="text-sm flex-1" style={{ color: "var(--text)" }}>
-                      {u.name || u.email}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button type="submit" className="btn-primary" disabled={running || !engineProgramId || engineUserIds.length === 0}>
-              <Wand2 size={16} />
-              {running ? "Running…" : "Run assignment"}
-            </button>
-          </div>
-
-          {engineResult && (
-            <div className="rounded-xl p-4" style={{ backgroundColor: "var(--status-active-bg)" }}>
-              <p className="text-sm font-medium mb-2" style={{ color: "var(--status-active-fg)" }}>
-                Assigned {engineResult.totalAssigned} of {engineResult.totalCandidates} eligible respondent(s)
-                {engineResult.leftover > 0 ? ` , ${engineResult.leftover} left over for next time` : ""}.
-              </p>
-              {engineResult.perVehicle?.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {engineResult.perVehicle.map((v) => (
-                    <span key={v.vehicleId} className="badge flex items-center gap-1" style={{ backgroundColor: "var(--surface)", color: "var(--violet)" }}>
-                      <Truck size={11} />
-                      {v.name}: {v.count}
-                    </span>
-                  ))}
+                    {REPORT_FORMATS.map((f) => (
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="button" className="btn-secondary" onClick={handleDownloadReport} disabled={downloading}>
+                    <Download size={14} />
+                    {downloading ? "Preparing…" : "Download Report"}
+                  </button>
                 </div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {engineResult.perUser?.map((u) => (
-                  <span key={u.userId} className="badge" style={{ backgroundColor: "var(--surface)", color: "var(--text)" }}>
-                    {u.name}: {u.count}
-                  </span>
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                {runResult.vehicles.map((v, i) => (
+                  <button
+                    key={v.vehicleId}
+                    onClick={() => {
+                      setActiveVehicleId(v.vehicleId);
+                      loadRows(v.vehicleId);
+                    }}
+                    className={activeVehicleId === v.vehicleId ? "range-btn active" : "range-btn"}
+                  >
+                    Car {i + 1} · {v.name} ({v.assigned.length})
+                  </button>
                 ))}
+              </div>
+
+              <div className="card" style={{ backgroundColor: "var(--surface-2)" }}>
+                <DataTable
+                  columns={[
+                    { key: "code", label: "Code", render: (r) => <span className="mono">{r.code}</span> },
+                    { key: "name", label: "Respondent" },
+                    { key: "userName", label: "Enumerator" },
+                  ]}
+                  rows={activeVehicle?.assigned || []}
+                  loading={false}
+                  emptyLabel="This vehicle has no respondents in this run."
+                />
               </div>
             </div>
           )}
-        </form>
+        </div>
       )}
 
-      {canCreate && (
-        <form onSubmit={handleCreate} className="card p-5 flex flex-col sm:flex-row gap-4 sm:items-end">
-          <p className="text-xs font-medium uppercase tracking-widest hidden sm:block" style={{ color: "var(--muted)", writingMode: "vertical-rl" }} />
-          <div className="flex-1">
-            <Field label="Manual assignment , User">
-              <SelectInput value={form.userId} onChange={(e) => setForm((f) => ({ ...f, userId: e.target.value }))}>
-                <option value="" className="text-black">Select a user…</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id} className="text-black">
-                    {u.name || u.email}
-                  </option>
-                ))}
-              </SelectInput>
-            </Field>
-          </div>
-          <div className="flex-1">
-            <Field label="Beneficiary">
-              <SelectInput value={form.beneficiaryId} onChange={(e) => setForm((f) => ({ ...f, beneficiaryId: e.target.value }))}>
-                <option value="" className="text-black">Select a beneficiary…</option>
-                {beneficiaries.map((b) => (
-                  <option key={b.id} value={b.id} className="text-black">
-                    {b.name} ({b.code})
-                  </option>
-                ))}
-              </SelectInput>
-            </Field>
-          </div>
-          <button type="submit" className="btn-secondary" disabled={creating} style={{ height: 44 }}>
-            <Plus size={16} />
-            Assign one
-          </button>
-        </form>
-      )}
-
-      <div className="card">
-        <DataTable columns={columns} rows={rows} loading={loading} emptyLabel="No beneficiary assignments yet." />
+      <div>
+        <p className="text-sm font-medium mb-2" style={{ color: "var(--text)" }}>
+          {activeVehicleId ? "Assignments for this vehicle" : "All active assignments"}
+        </p>
+        <div className="card">
+          <DataTable columns={historyColumns} rows={rows} loading={rowsLoading} emptyLabel="No beneficiary assignments yet." />
+        </div>
       </div>
 
       <ConfirmDialog

@@ -5,6 +5,7 @@ import DataTable from "../../components/DataTable.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
 import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
+import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
 import { usersApi } from "../../api/users.api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
@@ -24,7 +25,8 @@ export default function UsersListPage() {
   const [error, setError] = useState("");
   const [pendingDelete, setPendingDelete] = useState(null);
 
-  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(rows, 10);
+  const { filtered, query, setQuery } = useSearchedRows(rows, ["name", "firstName", "lastName", "email", "telephone", "role.name"]);
+  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
 
   async function load() {
     setLoading(true);
@@ -124,6 +126,8 @@ export default function UsersListPage() {
         )}
       </div>
 
+      <SearchInput value={query} onChange={setQuery} placeholder="Search by name, email, phone, or role…" />
+
       {error && (
         <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}>
           {error}
@@ -131,8 +135,8 @@ export default function UsersListPage() {
       )}
 
       <div className="card">
-        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No users yet — add the first one." />
-        <Pagination page={page} pageSize={pageSize} total={rows.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
+        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No users yet, add the first one." />
+        <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       <ConfirmDialog

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
 import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight, Sun, Moon, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
@@ -127,9 +127,14 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="text-xs font-medium mb-1.5 block" style={{ color: "var(--text)" }}>
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="text-xs font-medium block" style={{ color: "var(--text)" }}>
+                    Password
+                  </label>
+                  <Link to="/forgot-password" className="text-xs font-medium" style={{ color: "var(--violet)" }}>
+                    Forgot password?
+                  </Link>
+                </div>
                 <div className="field" style={focusField === "password" ? { borderColor: "var(--violet)" } : undefined}>
                   <Lock size={16} color="var(--muted)" />
                   <input

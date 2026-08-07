@@ -117,6 +117,7 @@ export const NAV = [
     children: [
       { label: "View tenants", to: "/tenants" },
       { label: "Add tenant", to: "/tenants/new", requires: ACTIONS.TENANTS_MANAGE },
+      { label: "Tenant administrators", to: "/tenant-admins" },
     ],
   },
 ];

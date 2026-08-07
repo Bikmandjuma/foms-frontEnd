@@ -110,7 +110,7 @@ export default function ProgramsListPage() {
       )}
 
       <div className="card">
-        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No programs yet — add the first one." />
+        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No programs yet ,add the first one." />
         <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 

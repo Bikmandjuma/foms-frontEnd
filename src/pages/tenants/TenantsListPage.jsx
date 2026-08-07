@@ -82,13 +82,13 @@ export default function TenantsListPage() {
       )}
 
       <div className="card">
-        <DataTable columns={columns} rows={rows} loading={loading} emptyLabel="No tenants yet — add the first one." />
+        <DataTable columns={columns} rows={rows} loading={loading} emptyLabel="No tenants yet ,add the first one." />
       </div>
 
       <ConfirmDialog
         open={!!pendingDelete}
         title="Delete tenant?"
-        message={`This permanently removes "${pendingDelete?.name}" and everything inside it — users, roles, programs, beneficiaries. This can't be undone.`}
+        message={`This permanently removes "${pendingDelete?.name}" and everything inside it , users, roles, programs, beneficiaries. This can't be undone.`}
         onConfirm={handleDelete}
         onCancel={() => setPendingDelete(null)}
       />

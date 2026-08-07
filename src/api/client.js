@@ -2,14 +2,10 @@ import axios from "axios";
 const TOKEN_KEY = "huska_token";
 
 export const client = axios.create({
-  // baseURL: import.meta.env.VITE_API_URL || "https://foms-backend-production.up.railway.app/api",
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:4000/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://foms-backend-production.up.railway.app/api",
+  // baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:4000/api",
 });
 
-// avatarUrl comes back from the API as a relative path ("/uploads/avatars/x.jpg")
-// served from the backend's ORIGIN, not its /api path — this strips the /api
-// suffix off the configured base URL so <img src> tags resolve correctly
-// regardless of environment (local dev vs. the Railway deployment).
 export function resolveAssetUrl(path) {
   if (!path) return null;
   if (/^https?:\/\//i.test(path)) return path;

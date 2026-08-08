@@ -324,9 +324,9 @@ export default function BeneficiaryAssignmentsPage() {
                         No vehicles set up yet ,add one under Vehicles first.
                       </p>
 
-                      <button type="button" to="/vehicles/new" className="text-xs font-medium" style={{ color: "var(--violet)" }}>
+                      <Link type="button" to="/vehicles/new" className="text-xs font-medium" style={{ color: "var(--violet)" }}>
                         Add one
-                      </button>
+                      </Link>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">

@@ -319,15 +319,9 @@ export default function BeneficiaryAssignmentsPage() {
             <>
               <Field label="2. Vehicle(s) for this run" required>
                 {allVehicles.length === 0 ? (
-                  <div className="flex items-center gap-2">
-                      <p className="text-xs" style={{ color: "var(--muted)" }}>
-                        No vehicles set up yet ,add one under Vehicles first.
-                      </p>
-
-                      <Link to="/vehicles/new" className="text-xs font-medium" style={{ color: "var(--violet)" }}>
-                        Add one
-                      </Link>
-                  </div>
+                  <p className="text-xs" style={{ color: "var(--muted)" }}>
+                    No vehicles set up yet ,add one under Vehicles first.
+                  </p>
                 ) : (
                   <div className="flex flex-col gap-2">
                     {allVehicles.map((v) => {

@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx eslint *)",
+      "Bash(npm run *)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(ps -p 30790 -o pid,lstart,command)",
+      "Bash(pm2 list *)",
+      "Bash(kill 30790)",
+      "Bash(kill -9 30790)",
+      "Bash(kill -9 33444)",
+      "Bash(kill -9 37614)",
+      "Bash(kill -9 38410)",
+      "Bash(kill -9 50666)",
+      "Bash(kill -9 56138)",
+      "Bash(kill -9 57920)",
+      "Bash(nohup node dist/server.js)",
+      "Bash(flutter --version)",
+      "Bash(flutter pub *)",
+      "Bash(flutter analyze *)",
+      "Bash(kill -9 60164)"
+    ],
+    "additionalDirectories": [
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/models",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/services",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/providers",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/availability",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/profile"
+    ]
+  }
+}

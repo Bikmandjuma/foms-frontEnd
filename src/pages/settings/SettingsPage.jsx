@@ -24,11 +24,11 @@ export default function SettingsPage() {
     lastName: user?.lastName || (user?.name ? user.name.split(" ").slice(1).join(" ") : ""),
     telephone: user?.telephone || "",
     gender: user?.gender || "",
-    province: user?.province || "",
-    district: user?.district || "",
-    sector: user?.sector || "",
-    cell: user?.cell || "",
-    village: user?.village || "",
+    provinceId: user?.province?.id || "",
+    districtId: user?.district?.id || "",
+    sectorId: user?.sector?.id || "",
+    cellId: user?.cell?.id || "",
+    villageId: user?.village?.id || "",
   });
 
   function update(field, value) {
@@ -180,7 +180,13 @@ export default function SettingsPage() {
             Address
           </p>
           <GeoCascadeSelect
-            value={{ province: form.province, district: form.district, sector: form.sector, cell: form.cell, village: form.village }}
+            value={{
+              provinceId: form.provinceId,
+              districtId: form.districtId,
+              sectorId: form.sectorId,
+              cellId: form.cellId,
+              villageId: form.villageId,
+            }}
             onChange={(next) => setForm((f) => ({ ...f, ...next }))}
           />
         </div>

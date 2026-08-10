@@ -47,9 +47,8 @@ const NOTIFICATION_ICONS = {
 function resolveNotificationTarget(notification, can) {
   switch (notification.type) {
     case "ASSIGNMENT_PROGRAM":
-      return can(ACTIONS.ASSIGNMENTS_VIEW) ? "/assignments/programs" : null;
     case "ASSIGNMENT_BENEFICIARY":
-      return can(ACTIONS.ASSIGNMENTS_VIEW) ? "/assignments/beneficiaries" : null;
+      return can(ACTIONS.ASSIGNMENTS_VIEW) ? "/assignments/programs" : null;
     case "REPLACEMENT_REQUESTED":
     case "REPLACEMENT_DECIDED":
       // The replacements route has no permission gate — any authenticated

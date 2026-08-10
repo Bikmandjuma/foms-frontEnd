@@ -81,10 +81,11 @@ export const NAV = [
     requires: ACTIONS.ASSIGNMENTS_VIEW,
     children: [
       { label: "Program assignments", to: "/assignments/programs" },
-      { label: "Respondent assignments", to: "/assignments/beneficiaries" },
+      { label: "Car assignment", to: "/assignments/vehicles", requires: ACTIONS.TEAMS_VIEW },
+      { label: "Confirm availability", to: "/assignments/availability" },
     ],
   },
-  
+
   {
     type: "link",
     key: "replacements",

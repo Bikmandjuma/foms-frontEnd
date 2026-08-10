@@ -21,6 +21,9 @@ const MAP = {
   // Replacement request lifecycle
   APPROVED: { bg: "var(--status-active-bg)", fg: "var(--status-active-fg)" },
   REJECTED: { bg: "var(--status-suspended-bg)", fg: "var(--status-suspended-fg)" },
+  // Availability check
+  AVAILABLE: { bg: "var(--status-active-bg)", fg: "var(--status-active-fg)" },
+  NOT_AVAILABLE: { bg: "var(--status-suspended-bg)", fg: "var(--status-suspended-fg)" },
 };
 
 export default function StatusBadge({ status }) {

@@ -174,7 +174,9 @@ export default function UserViewPage() {
           <InfoRow
             icon={MapPin}
             label="Location"
-            value={[user.province, user.district, user.sector, user.cell, user.village].filter(Boolean).join(" / ")}
+            value={[user.province?.name, user.district?.name, user.sector?.name, user.cell?.name, user.village?.name]
+              .filter(Boolean)
+              .join(" / ")}
           />
           <InfoRow icon={Cake} label="Date of birth" value={user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : null} />
           <InfoRow icon={GraduationCap} label="Education level" value={user.educationLevel?.replaceAll("_", " ")} />

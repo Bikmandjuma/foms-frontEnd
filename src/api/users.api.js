@@ -1,7 +1,7 @@
 import { client } from "./client.js";
 
 export const usersApi = {
-  list: () => client.get("/users"),
+  list: (params) => client.get("/users", { params }),
   get: (id) => client.get(`/users/${id}`),
   create: (payload) => client.post("/users", payload),
   update: (id, payload) => client.patch(`/users/${id}`, payload),

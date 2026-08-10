@@ -22,10 +22,12 @@ import RolesListPage from "./pages/roles/RolesListPage.jsx";
 import RoleFormPage from "./pages/roles/RoleFormPage.jsx";
 import ProgramsListPage from "./pages/programs/ProgramsListPage.jsx";
 import ProgramFormPage from "./pages/programs/ProgramFormPage.jsx";
+import ProgramDetailsPage from "./pages/programs/ProgramDetailsPage.jsx";
 import BeneficiariesListPage from "./pages/beneficiaries/BeneficiariesListPage.jsx";
 import BeneficiaryFormPage from "./pages/beneficiaries/BeneficiaryFormPage.jsx";
 import ProgramAssignmentsPage from "./pages/assignments/ProgramAssignmentsPage.jsx";
-import BeneficiaryAssignmentsPage from "./pages/assignments/BeneficiaryAssignmentsPage.jsx";
+import CarAssignmentPage from "./pages/assignments/CarAssignmentPage.jsx";
+import ConfirmAvailabilityPage from "./pages/assignments/ConfirmAvailabilityPage.jsx";
 import VehiclesListPage from "./pages/vehicles/VehiclesListPage.jsx";
 import VehicleFormPage from "./pages/vehicles/VehicleFormPage.jsx";
 import ReplacementRequestsPage from "./pages/replacements/ReplacementRequestsPage.jsx";
@@ -74,6 +76,7 @@ export default function App() {
 
                     <Route path="programs" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_VIEW}><ProgramsListPage /></ProtectedRoute>} />
                     <Route path="programs/new" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_CREATE}><ProgramFormPage /></ProtectedRoute>} />
+                    <Route path="programs/:id" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_VIEW}><ProgramDetailsPage /></ProtectedRoute>} />
                     <Route path="programs/:id/edit" element={<ProtectedRoute requires={ACTIONS.PROGRAMS_EDIT}><ProgramFormPage /></ProtectedRoute>} />
 
                     <Route path="beneficiaries" element={<ProtectedRoute requires={ACTIONS.BENEFICIARIES_VIEW}><BeneficiariesListPage /></ProtectedRoute>} />
@@ -81,7 +84,8 @@ export default function App() {
                     <Route path="beneficiaries/:id/edit" element={<ProtectedRoute requires={ACTIONS.BENEFICIARIES_EDIT}><BeneficiaryFormPage /></ProtectedRoute>} />
 
                     <Route path="assignments/programs" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><ProgramAssignmentsPage /></ProtectedRoute>} />
-                    <Route path="assignments/beneficiaries" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><BeneficiaryAssignmentsPage /></ProtectedRoute>} />
+                    <Route path="assignments/vehicles" element={<ProtectedRoute requires={ACTIONS.TEAMS_VIEW}><CarAssignmentPage /></ProtectedRoute>} />
+                    <Route path="assignments/availability" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><ConfirmAvailabilityPage /></ProtectedRoute>} />
 
                     <Route path="vehicles" element={<ProtectedRoute requires={ACTIONS.VEHICLES_VIEW}><VehiclesListPage /></ProtectedRoute>} />
                     <Route path="vehicles/new" element={<ProtectedRoute requires={ACTIONS.VEHICLES_CREATE}><VehicleFormPage /></ProtectedRoute>} />

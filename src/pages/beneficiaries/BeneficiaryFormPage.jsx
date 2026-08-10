@@ -14,11 +14,11 @@ const OUTCOMES = ["PENDING", "COMPLETED", "REFUSED", "NOT_FOUND", "RELOCATED", "
 const EMPTY = {
   name: "",
   telephone: "",
-  province: "",
-  district: "",
-  sector: "",
-  cell: "",
-  village: "",
+  provinceId: "",
+  districtId: "",
+  sectorId: "",
+  cellId: "",
+  villageId: "",
   gender: "",
   dateOfBirth: "",
   status: "ACTIVE",
@@ -57,11 +57,11 @@ export default function BeneficiaryFormPage() {
           setForm({
             name: b.name || "",
             telephone: b.telephone || "",
-            province: b.province || "",
-            district: b.district || "",
-            sector: b.sector || "",
-            cell: b.cell || "",
-            village: b.village || "",
+            provinceId: b.province?.id || "",
+            districtId: b.district?.id || "",
+            sectorId: b.sector?.id || "",
+            cellId: b.cell?.id || "",
+            villageId: b.village?.id || "",
             gender: b.gender || "",
             dateOfBirth: b.dateOfBirth ? b.dateOfBirth.slice(0, 10) : "",
             status: b.status || "ACTIVE",
@@ -170,7 +170,13 @@ export default function BeneficiaryFormPage() {
             Cell and village power the replacement-matching engine the more precise, the better the suggested replacements.
           </p>
           <GeoCascadeSelect
-            value={{ province: form.province, district: form.district, sector: form.sector, cell: form.cell, village: form.village }}
+            value={{
+              provinceId: form.provinceId,
+              districtId: form.districtId,
+              sectorId: form.sectorId,
+              cellId: form.cellId,
+              villageId: form.villageId,
+            }}
             onChange={(next) => setForm((f) => ({ ...f, ...next }))}
           />
         </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
@@ -59,28 +59,27 @@ export default function ProgramsListPage() {
     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
     { key: "targetSampleSize", label: "Target sample", render: (r) => r.targetSampleSize ?? "—" },
     { key: "createdAt", label: "Created", render: (r) => new Date(r.createdAt).toLocaleDateString() },
-    ...(canEdit || canDelete
-      ? [
-          {
-            key: "actions",
-            label: "",
-            render: (r) => (
-              <div className="flex items-center gap-2 justify-end">
-                {canEdit && (
-                  <Link to={`/programs/${r.id}/edit`} className="btn-secondary" style={{ height: 32, padding: "0 10px" }}>
-                    <Pencil size={14} />
-                  </Link>
-                )}
-                {canDelete && (
-                  <button className="btn-secondary btn-danger" style={{ height: 32, padding: "0 10px" }} onClick={() => setPendingDelete(r)}>
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-            ),
-          },
-        ]
-      : []),
+    {
+      key: "actions",
+      label: "",
+      render: (r) => (
+        <div className="flex items-center gap-2 justify-end">
+          <Link to={`/programs/${r.id}`} className="btn-secondary" style={{ height: 32, padding: "0 10px" }} title="View program">
+            <Eye size={14} />
+          </Link>
+          {canEdit && (
+            <Link to={`/programs/${r.id}/edit`} className="btn-secondary" style={{ height: 32, padding: "0 10px" }}>
+              <Pencil size={14} />
+            </Link>
+          )}
+          {canDelete && (
+            <button className="btn-secondary btn-danger" style={{ height: 32, padding: "0 10px" }} onClick={() => setPendingDelete(r)}>
+              <Trash2 size={14} />
+            </button>
+          )}
+        </div>
+      ),
+    },
   ];
 
   return (

@@ -128,8 +128,8 @@ function RespondentsModal({ checkIn, isOwner, canOverride, onClose, onChanged })
       (r) =>
         r.beneficiary.name.toLowerCase().includes(q) ||
         r.beneficiary.code.toLowerCase().includes(q) ||
-        (r.beneficiary.village || "").toLowerCase().includes(q) ||
-        (r.beneficiary.sector || "").toLowerCase().includes(q)
+        (r.beneficiary.village?.name || "").toLowerCase().includes(q) ||
+        (r.beneficiary.sector?.name || "").toLowerCase().includes(q)
     );
   }, [data, search]);
 
@@ -276,7 +276,7 @@ function RespondentsModal({ checkIn, isOwner, canOverride, onClose, onChanged })
                       </p>
                       <p className="text-xs flex items-center gap-1 mt-0.5" style={{ color: "var(--muted)" }}>
                         <MapPin size={11} />
-                        {[r.beneficiary.village, r.beneficiary.sector].filter(Boolean).join(", ") || "—"}
+                        {[r.beneficiary.village?.name, r.beneficiary.sector?.name].filter(Boolean).join(", ") || "—"}
                       </p>
                     </div>
                     {canEditOutcomes ? (

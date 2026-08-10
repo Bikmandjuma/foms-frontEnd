@@ -20,11 +20,11 @@ const EMPTY = {
   firstName: "",
   lastName: "",
   telephone: "",
-  province: "",
-  district: "",
-  sector: "",
-  cell: "",
-  village: "",
+  provinceId: "",
+  districtId: "",
+  sectorId: "",
+  cellId: "",
+  villageId: "",
   gender: "",
   dateOfBirth: "",
   status: "ACTIVE",
@@ -68,11 +68,11 @@ export default function UserFormPage() {
             firstName: u.firstName || (u.name ? u.name.split(" ")[0] : ""),
             lastName: u.lastName || (u.name ? u.name.split(" ").slice(1).join(" ") : ""),
             telephone: u.telephone || "",
-            province: u.province || "",
-            district: u.district || "",
-            sector: u.sector || "",
-            cell: u.cell || "",
-            village: u.village || "",
+            provinceId: u.province?.id || "",
+            districtId: u.district?.id || "",
+            sectorId: u.sector?.id || "",
+            cellId: u.cell?.id || "",
+            villageId: u.village?.id || "",
             gender: u.gender || "",
             dateOfBirth: u.dateOfBirth ? u.dateOfBirth.slice(0, 10) : "",
             status: u.status || "ACTIVE",
@@ -234,7 +234,13 @@ export default function UserFormPage() {
             Address
           </p>
           <GeoCascadeSelect
-            value={{ province: form.province, district: form.district, sector: form.sector, cell: form.cell, village: form.village }}
+            value={{
+              provinceId: form.provinceId,
+              districtId: form.districtId,
+              sectorId: form.sectorId,
+              cellId: form.cellId,
+              villageId: form.villageId,
+            }}
             onChange={(next) => setForm((f) => ({ ...f, ...next }))}
           />
         </div>

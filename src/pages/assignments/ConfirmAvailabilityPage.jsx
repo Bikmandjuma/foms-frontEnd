@@ -133,7 +133,7 @@ export default function ConfirmAvailabilityPage() {
           Confirm availability
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          An independent check — assign a staff role to confirm whether each respondent is actually available, separate from program assignments.
+          An independent check assign a staff role to confirm whether each respondent is actually available, separate from program assignments.
         </p>
       </div>
 

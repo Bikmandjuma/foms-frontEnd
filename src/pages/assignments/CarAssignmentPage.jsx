@@ -102,7 +102,7 @@ export default function CarAssignmentPage() {
           Car assignment
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          Pick a program, then assign a vehicle to each group — sized to fit everyone in it, splitting across more than one vehicle if none alone is big enough.
+          Pick a program, then assign a vehicle to each group sized to fit everyone in it, splitting across more than one vehicle if none alone is big enough.
         </p>
       </div>
 

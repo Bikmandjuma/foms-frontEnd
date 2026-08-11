@@ -22,6 +22,7 @@ export default function ProgramFormPage() {
     targetSampleSize: "",
     startDate: "",
     endDate: "",
+    tracingRequired: false,
   });
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -43,6 +44,7 @@ export default function ProgramFormPage() {
             targetSampleSize: p.targetSampleSize ?? "",
             startDate: p.startDate ? p.startDate.slice(0, 10) : "",
             endDate: p.endDate ? p.endDate.slice(0, 10) : "",
+            tracingRequired: !!p.tracingRequired,
           })
       )
       .catch((err) => !cancelled && setError(err.message))
@@ -142,6 +144,22 @@ export default function ProgramFormPage() {
             <TextInput type="date" value={form.endDate} onChange={(e) => update("endDate", e.target.value)} />
           </Field>
         </div>
+
+        <label className="flex items-start gap-2 text-sm" style={{ color: "var(--text)" }}>
+          <input
+            type="checkbox"
+            checked={form.tracingRequired}
+            onChange={(e) => update("tracingRequired", e.target.checked)}
+            style={{ marginTop: 3 }}
+          />
+          <span>
+            Tracing is required
+            <br />
+            <span className="text-xs" style={{ color: "var(--muted)" }}>
+              When checked, the Run assignment button stays disabled until every respondent's tracing status is no longer pending.
+            </span>
+          </span>
+        </label>
 
         <div className="flex justify-end gap-3 pt-2">
           <Link to="/programs" className="btn-secondary">

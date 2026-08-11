@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ClipboardList, Wand2, Crown, X, UserPlus, Square, Trash2 } from "lucide-react";
-import DataTable from "../../components/DataTable.jsx";
-import StatusBadge from "../../components/StatusBadge.jsx";
-import ConfirmDialog from "../../components/ConfirmDialog.jsx";
+import { Link } from "react-router-dom";
+import { ClipboardList, Wand2, Crown, X, UserPlus, AlertTriangle } from "lucide-react";
 import { Field, SelectInput, TextInput } from "../../components/FormField.jsx";
+import AssignRespondentsCard from "../../components/AssignRespondentsCard.jsx";
 import { programsApi } from "../../api/programs.api.js";
 import { programTeamsApi } from "../../api/programTeams.api.js";
-import { programAssignmentsApi } from "../../api/programAssignments.api.js";
 import { rolesApi } from "../../api/roles.api.js";
 import { usersApi } from "../../api/users.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
@@ -19,20 +17,16 @@ export default function ProgramAssignmentsPage() {
   const canConfigure = can(ACTIONS.TEAMS_CREATE);
   const canEditTeams = can(ACTIONS.TEAMS_EDIT);
   const canDeleteTeams = can(ACTIONS.TEAMS_DELETE);
-  const canViewAssignments = can(ACTIONS.ASSIGNMENTS_VIEW);
-  const canEditAssignments = can(ACTIONS.ASSIGNMENTS_EDIT);
-  const canDeleteAssignments = can(ACTIONS.ASSIGNMENTS_DELETE);
 
   const [programs, setPrograms] = useState([]);
   const [roles, setRoles] = useState([]);
   const [programId, setProgramId] = useState("");
   const [program, setProgram] = useState(null);
   const [teams, setTeams] = useState([]);
-  const [assignments, setAssignments] = useState([]);
+  const [tracingPendingCount, setTracingPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [programLoading, setProgramLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pendingDelete, setPendingDelete] = useState(null);
 
   const [config, setConfig] = useState({ teamLeaderRoleId: "", teamMemberRoleId: "", membersPerTeam: "" });
   const [editingConfig, setEditingConfig] = useState(false);
@@ -57,13 +51,10 @@ export default function ProgramAssignmentsPage() {
   }, []);
 
   async function loadProgramData(id) {
-    const [teamData, assignmentList] = await Promise.all([
-      programTeamsApi.get(id),
-      programAssignmentsApi.list({ programId: id }),
-    ]);
+    const teamData = await programTeamsApi.get(id);
     setProgram(teamData.program);
     setTeams(teamData.teams);
-    setAssignments(assignmentList);
+    setTracingPendingCount(teamData.tracingPendingCount || 0);
     setConfig({
       teamLeaderRoleId: teamData.program.teamLeaderRoleId ?? "",
       teamMemberRoleId: teamData.program.teamMemberRoleId ?? "",
@@ -208,60 +199,10 @@ export default function ProgramAssignmentsPage() {
     }
   }
 
-  async function handleEndAssignment(row) {
-    try {
-      const updated = await programAssignmentsApi.end(row.id);
-      setAssignments((r) => r.map((a) => (a.id === row.id ? updated : a)));
-      toast.success("Assignment ended");
-    } catch (err) {
-      setError(err.message || "Couldn't end assignment.");
-    }
-  }
-
-  async function handleDeleteAssignment() {
-    if (!pendingDelete) return;
-    try {
-      await programAssignmentsApi.remove(pendingDelete.id);
-      setAssignments((r) => r.filter((a) => a.id !== pendingDelete.id));
-      toast.success("Assignment deleted");
-    } catch (err) {
-      setError(err.message || "Couldn't delete assignment.");
-    } finally {
-      setPendingDelete(null);
-    }
-  }
-
   const hasConfig = !!(program?.teamLeaderRoleId && program?.teamMemberRoleId && program?.membersPerTeam);
   const isConfigured = teams.length > 0;
+  const tracingBlocked = !!program?.tracingRequired && tracingPendingCount > 0;
   const placedElsewhere = new Set([...teams.map((t) => t.leader?.id).filter(Boolean), ...teams.flatMap((t) => t.members.map((m) => m.user.id))]);
-
-  const assignmentColumns = [
-    { key: "user", label: "User", render: (r) => r.user?.name || r.user?.email },
-    { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { key: "assignedAt", label: "Assigned", render: (r) => new Date(r.assignedAt).toLocaleDateString() },
-    ...(canEditAssignments || canDeleteAssignments
-      ? [
-          {
-            key: "actions",
-            label: "",
-            render: (r) => (
-              <div className="flex items-center gap-2 justify-end">
-                {r.status === "ACTIVE" && canEditAssignments && (
-                  <button className="btn-secondary" style={{ height: 32, padding: "0 10px" }} onClick={() => handleEndAssignment(r)} title="End assignment">
-                    <Square size={14} />
-                  </button>
-                )}
-                {canDeleteAssignments && (
-                  <button className="btn-secondary btn-danger" style={{ height: 32, padding: "0 10px" }} onClick={() => setPendingDelete(r)}>
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-            ),
-          },
-        ]
-      : []),
-  ];
 
   return (
     <div className="flex flex-col gap-5">
@@ -299,6 +240,24 @@ export default function ProgramAssignmentsPage() {
 
       {programId && !programLoading && (
         <>
+          {canConfigure && program?.tracingRequired && (
+            <div
+              className="text-sm rounded-xl px-4 py-3 flex items-center gap-2"
+              style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}
+            >
+              <AlertTriangle size={16} />
+              Tracing is required for this program — assign respondents from the{" "}
+              <Link to="/assignments/tracing" style={{ textDecoration: "underline" }}>
+                Tracing page
+              </Link>{" "}
+              instead.
+            </div>
+          )}
+
+          {canConfigure && !program?.tracingRequired && (
+            <AssignRespondentsCard programId={programId} canAssign={canConfigure} />
+          )}
+
           {canConfigure && hasConfig && !editingConfig && (
             <div className="card p-5 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
@@ -369,21 +328,32 @@ export default function ProgramAssignmentsPage() {
           )}
 
           {canConfigure && hasConfig && !editingConfig && (
-            <div className="card p-5 flex items-center justify-between gap-4 flex-wrap">
-              <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Automatically staff and geo-match enumerators, supervisors, and respondents for this program.
-              </p>
-              <button type="button" className="btn-primary" onClick={handleRun} disabled={running}>
-                <Wand2 size={16} />
-                {running ? "Running…" : "Run assignment"}
-              </button>
+            <div className="card p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <p className="text-sm" style={{ color: "var(--muted)" }}>
+                  Automatically staff and geo-match enumerators, supervisors, and respondents for this program.
+                </p>
+                <button type="button" className="btn-primary" onClick={handleRun} disabled={running || tracingBlocked}>
+                  <Wand2 size={16} />
+                  {running ? "Running…" : "Run assignment"}
+                </button>
+              </div>
+              {tracingBlocked && (
+                <div
+                  className="text-sm rounded-xl px-4 py-3 flex items-center gap-2"
+                  style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}
+                >
+                  <AlertTriangle size={16} />
+                  Tracing is required for this program and is not complete — {tracingPendingCount} respondent(s) still pending.
+                  Run assignment is disabled until tracing has no pending respondents.
+                </div>
+              )}
             </div>
           )}
 
           {result && (
             <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-active-bg)", color: "var(--status-active-fg)" }}>
-              {result.activeEnumerators} active enumerator(s), {result.activeSupervisors} active supervisor(s) on this program.
-              {result.respondentsEnrolled > 0 && ` Enrolled ${result.respondentsEnrolled} new respondent(s) into the program.`} Assigned{" "}
+              {result.activeEnumerators} active enumerator(s), {result.activeSupervisors} active supervisor(s) on this program. Assigned{" "}
               {result.respondentsAssigned} of {result.respondentsEligible} respondent(s), placed {result.membersPlaced} enumerator(s) into{" "}
               {result.teamsCreated ? `${result.teamsCreated} new ` : ""}group(s), matched {result.supervisorsAssigned} supervisor(s).
               {result.teamsMissingSupervisor > 0 && ` ${result.teamsMissingSupervisor} group(s) still need a supervisor.`}
@@ -502,21 +472,8 @@ export default function ProgramAssignmentsPage() {
             </div>
           )}
 
-          {canViewAssignments && (
-            <div className="card">
-              <DataTable columns={assignmentColumns} rows={assignments} emptyLabel="No one is assigned to this program yet." />
-            </div>
-          )}
         </>
       )}
-
-      <ConfirmDialog
-        open={!!pendingDelete}
-        title="Delete assignment?"
-        message="This removes the assignment record entirely (use 'End' instead to keep history)."
-        onConfirm={handleDeleteAssignment}
-        onCancel={() => setPendingDelete(null)}
-      />
     </div>
   );
 }

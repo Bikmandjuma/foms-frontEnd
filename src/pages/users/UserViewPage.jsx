@@ -1,10 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Pencil, Mail, Phone, MapPin, Cake, GraduationCap, Clock, ShieldCheck, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  Pencil,
+  Mail,
+  Phone,
+  MapPin,
+  Cake,
+  GraduationCap,
+  Clock,
+  ShieldCheck,
+  Check,
+  ClipboardList,
+  Users2,
+  Crown,
+  Truck,
+} from "lucide-react";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import { SelectInput } from "../../components/FormField.jsx";
 import { usersApi } from "../../api/users.api.js";
 import { rolesApi } from "../../api/roles.api.js";
+import { programAssignmentsApi } from "../../api/programAssignments.api.js";
+import { programTeamsApi } from "../../api/programTeams.api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
@@ -46,9 +63,13 @@ export default function UserViewPage() {
   const { can } = usePermissions();
   const manage = can(ACTIONS.USERS_EDIT);
   const isSelf = currentUser?.id === id;
+  const canViewAssignments = can(ACTIONS.ASSIGNMENTS_VIEW);
+  const canViewTeams = can(ACTIONS.TEAMS_VIEW);
 
   const [user, setUser] = useState(null);
   const [roles, setRoles] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [savingRole, setSavingRole] = useState(false);
@@ -58,9 +79,16 @@ export default function UserViewPage() {
     setLoading(true);
     setError("");
     try {
-      const [u, roleList] = await Promise.all([usersApi.get(id), rolesApi.list()]);
+      const [u, roleList, assignmentList, teamList] = await Promise.all([
+        usersApi.get(id),
+        rolesApi.list(),
+        canViewAssignments ? programAssignmentsApi.list({ userId: id }) : Promise.resolve([]),
+        canViewTeams ? programTeamsApi.forUser(id) : Promise.resolve([]),
+      ]);
       setUser(u);
       setRoles(roleList);
+      setAssignments(assignmentList);
+      setTeams(teamList);
     } catch (err) {
       setError(err.message || "Couldn't load this user.");
     } finally {
@@ -187,6 +215,81 @@ export default function UserViewPage() {
           />
         </div>
       </div>
+
+      {/* Programs & groups — every program this user is assigned to, and every
+          group (team) they're on or lead, across all programs. */}
+      {(canViewAssignments || canViewTeams) && (
+        <div className="card p-6 flex flex-col gap-6">
+          {canViewAssignments && (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: "var(--muted)" }}>
+                <ClipboardList size={14} />
+                Programs
+              </p>
+              {assignments.length === 0 ? (
+                <p className="text-sm" style={{ color: "var(--muted)" }}>
+                  Not assigned to any program.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {assignments.map((a) => (
+                    <span key={a.id} className="badge flex items-center gap-2" style={{ backgroundColor: "var(--surface-2)", color: "var(--text)" }}>
+                      {a.program?.name}
+                      <StatusBadge status={a.status} />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {canViewTeams && (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: "var(--muted)" }}>
+                <Users2 size={14} />
+                Groups
+              </p>
+              {teams.length === 0 ? (
+                <p className="text-sm" style={{ color: "var(--muted)" }}>
+                  Not part of any group.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {teams.map((t) => {
+                    const isLeader = t.leader?.id === id;
+                    return (
+                      <div
+                        key={t.id}
+                        className="flex items-center justify-between gap-3 flex-wrap rounded-xl px-4 py-3"
+                        style={{ backgroundColor: "var(--surface-2)" }}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {isLeader && <Crown size={14} color="var(--amber)" />}
+                          <span className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                            {t.program?.name}
+                          </span>
+                          <span className="text-sm" style={{ color: "var(--muted)" }}>
+                            · {t.name}
+                          </span>
+                          <span className="badge" style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}>
+                            {isLeader ? "Leader" : "Member"}
+                          </span>
+                        </div>
+                        {t.vehicles?.length > 0 && (
+                          <div className="flex items-center gap-1 text-xs" style={{ color: "var(--muted)" }}>
+                            <Truck size={13} />
+                            {t.vehicles.map((v) => v.vehicle.name).join(", ")}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Role & permissions — set the role here rather than a column of per-user checkboxes;
           permissions always come from the assigned role, never from the user directly. */}

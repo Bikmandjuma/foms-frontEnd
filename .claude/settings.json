@@ -18,7 +18,14 @@
       "Bash(flutter --version)",
       "Bash(flutter pub *)",
       "Bash(flutter analyze *)",
-      "Bash(kill -9 60164)"
+      "Bash(kill -9 60164)",
+      "Bash(kill -9 64275)",
+      "Bash(kill -9 97446)",
+      "Bash(rm /Users/maicoltd/Developer/huska_tenant_app/lib/widgets/profile_icon_button.dart && echo removed)",
+      "Bash(xcrun simctl *)",
+      "Bash(kill -9 863)",
+      "Bash(kill -9 4973)",
+      "Bash(kill -9 6542)"
     ],
     "additionalDirectories": [
       "/Users/maicoltd/Developer/huska_tenant_app/lib/models",
@@ -26,7 +33,13 @@
       "/Users/maicoltd/Developer/huska_tenant_app/lib/providers",
       "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/availability",
       "/Users/maicoltd/Developer/huska_tenant_app/lib",
-      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/profile"
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/profile",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/home",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/beneficiaries",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/widgets",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/dashboard",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/field",
+      "/Users/maicoltd/Developer/huska_tenant_app/lib/screens/programs"
     ]
   }
 }

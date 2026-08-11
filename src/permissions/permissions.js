@@ -40,6 +40,7 @@ export const ACTIONS = {
   VEHICLES_DELETE: "vehicles:delete",
   MONITORING_VIEW: "monitoring:view",
   MONITORING_MANAGE: "monitoring:manage",
+  FIELD_TEAM_REPORTS_VIEW: "field-team-reports:view",
   ACTIVITY_VIEW: "activity:view",
   TENANTS_VIEW: "tenants:view",
   TENANTS_MANAGE: "tenants:manage",

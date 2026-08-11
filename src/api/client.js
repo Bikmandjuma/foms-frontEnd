@@ -2,8 +2,8 @@ import axios from "axios";
 const TOKEN_KEY = "huska_token";
 
 export const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://foms-backend-production.up.railway.app/api",
-  // baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:4000/api",
+  // baseURL: import.meta.env.VITE_API_URL || "https://foms-backend-production.up.railway.app/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:4000/api",
 });
 
 export function resolveAssetUrl(path) {

@@ -10,6 +10,7 @@ import {
   Radar,
   History,
   Truck,
+  FileBarChart,
 } from "lucide-react";
 import { ACTIONS } from "./permissions/permissions.js";
 
@@ -101,6 +102,14 @@ export const NAV = [
     icon: Radar,
     to: "/monitoring",
     requires: ACTIONS.MONITORING_VIEW,
+  },
+  {
+    type: "link",
+    key: "field-team-reports",
+    label: "Field team reports",
+    icon: FileBarChart,
+    to: "/reports/field-teams",
+    requires: ACTIONS.FIELD_TEAM_REPORTS_VIEW,
   },
   {
     type: "link",

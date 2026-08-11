@@ -133,7 +133,7 @@ export default function CarAssignmentPage() {
         <>
           {teams.length === 0 && (
             <div className="card flex items-center justify-center py-16 text-sm" style={{ color: "var(--muted)" }}>
-              This program has no groups yet — run its assignment engine first from Program assignments.
+              This program has no groups yet run its assignment engine first from Program assignments.
             </div>
           )}
 

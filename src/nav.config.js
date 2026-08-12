@@ -10,6 +10,7 @@ import {
   Radar,
   History,
   Truck,
+  Receipt,
   FileBarChart,
 } from "lucide-react";
 import { ACTIONS } from "./permissions/permissions.js";
@@ -83,10 +84,18 @@ export const NAV = [
     children: [
       { label: "Program assignments", to: "/assignments/programs" },
       { label: "Car assignment", to: "/assignments/vehicles", requires: ACTIONS.TEAMS_VIEW },
-      { label: "Confirm availability", to: "/assignments/availability" },
+      { label: "Tracing", to: "/assignments/tracing" },
     ],
   },
 
+  {
+    type: "link",
+    key: "expenses",
+    label: "Field expenses",
+    icon: Receipt,
+    to: "/expenses",
+    requires: ACTIONS.EXPENSES_VIEW,
+  },
   {
     type: "link",
     key: "replacements",

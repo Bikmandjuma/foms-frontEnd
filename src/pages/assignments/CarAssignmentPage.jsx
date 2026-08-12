@@ -102,7 +102,7 @@ export default function CarAssignmentPage() {
           Car assignment
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          Pick a program, then assign a vehicle to each group — sized to fit everyone in it, splitting across more than one vehicle if none alone is big enough.
+          Pick a program, then assign a vehicle to each group sized to fit everyone in it, splitting across more than one vehicle if none alone is big enough.
         </p>
       </div>
 
@@ -133,7 +133,7 @@ export default function CarAssignmentPage() {
         <>
           {teams.length === 0 && (
             <div className="card flex items-center justify-center py-16 text-sm" style={{ color: "var(--muted)" }}>
-              This program has no groups yet — run its assignment engine first from Program assignments.
+              This program has no groups yet run its assignment engine first from Program assignments.
             </div>
           )}
 

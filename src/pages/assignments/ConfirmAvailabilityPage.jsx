@@ -2,13 +2,33 @@ import React, { useEffect, useState } from "react";
 import { ClipboardList, ShieldCheck, Wand2 } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
+import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
+import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
 import { Field, SelectInput } from "../../components/FormField.jsx";
+import AssignRespondentsCard from "../../components/AssignRespondentsCard.jsx";
 import { programsApi } from "../../api/programs.api.js";
 import { rolesApi } from "../../api/roles.api.js";
 import { availabilityChecksApi } from "../../api/availabilityChecks.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
 import { ACTIONS } from "../../permissions/permissions.js";
+
+function ProgressBar({ value, total }) {
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--surface-2)" }}>
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${pct}%`, backgroundColor: total > 0 && value >= total ? "var(--teal)" : "var(--violet)" }}
+        />
+      </div>
+      <span className="mono text-xs shrink-0" style={{ color: "var(--muted)" }}>
+        {value}/{total} checked
+      </span>
+    </div>
+  );
+}
 
 export default function ConfirmAvailabilityPage() {
   const { can } = usePermissions();
@@ -72,7 +92,7 @@ export default function ConfirmAvailabilityPage() {
       await availabilityChecksApi.updateConfig({ programId, checkerRoleId });
       await loadProgramData(programId);
       setEditingConfig(false);
-      toast.success("Checker configuration saved");
+      toast.success("Tracing configuration saved");
     } catch (err) {
       setError(err.message || "Couldn't save this configuration.");
     } finally {
@@ -101,6 +121,10 @@ export default function ConfirmAvailabilityPage() {
   }
 
   const hasConfig = !!program?.checkerRoleId;
+  const checkedCount = respondents.filter((r) => r.availabilityChecks?.[0] && r.availabilityChecks[0].status !== "PENDING").length;
+
+  const { filtered, query, setQuery } = useSearchedRows(respondents, ["code", "name", "telephone"]);
+  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
 
   const columns = [
     { key: "code", label: "Code", render: (r) => <span className="mono">{r.code}</span> },
@@ -113,7 +137,7 @@ export default function ConfirmAvailabilityPage() {
     },
     {
       key: "checker",
-      label: "Assigned checker",
+      label: "Assigned tracer",
       render: (r) => {
         const checker = r.availabilityChecks?.[0]?.user;
         return checker ? checker.name || checker.email : "—";
@@ -130,10 +154,10 @@ export default function ConfirmAvailabilityPage() {
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="display text-xl font-semibold" style={{ color: "var(--text)" }}>
-          Confirm availability
+          Tracing
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          An independent check — assign a staff role to confirm whether each respondent is actually available, separate from program assignments.
+          An independent check assign a staff role to confirm whether each respondent is actually available, separate from program assignments.
         </p>
       </div>
 
@@ -160,12 +184,16 @@ export default function ConfirmAvailabilityPage() {
 
       {programId && !programLoading && (
         <>
+          {canConfigure && program?.tracingRequired && (
+            <AssignRespondentsCard programId={programId} canAssign={canConfigure} onAssigned={() => loadProgramData(programId)} />
+          )}
+
           {canConfigure && hasConfig && !editingConfig && (
             <div className="card p-5 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
                 <ShieldCheck size={16} color="var(--violet)" />
                 <span className="text-sm" style={{ color: "var(--text)" }}>
-                  Checker role: <strong>{program.checkerRole?.name}</strong>
+                  Tracer role: <strong>{program.checkerRole?.name}</strong>
                 </span>
               </div>
               <button type="button" className="btn-secondary" onClick={() => setEditingConfig(true)}>
@@ -179,11 +207,11 @@ export default function ConfirmAvailabilityPage() {
               <div className="flex items-center gap-2">
                 <ShieldCheck size={16} color="var(--violet)" />
                 <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-                  {hasConfig ? "Edit checker configuration" : "Checker configuration"}
+                  {hasConfig ? "Edit tracing configuration" : "Tracing configuration"}
                 </p>
               </div>
               <div className="max-w-sm">
-                <Field label="Role responsible for checking" required>
+                <Field label="Role responsible for tracing" required>
                   <SelectInput required value={checkerRoleId} onChange={(e) => setCheckerRoleId(e.target.value)}>
                     <option value="" className="text-black">Select a role…</option>
                     {roles.map((r) => (
@@ -210,7 +238,7 @@ export default function ConfirmAvailabilityPage() {
           {hasConfig && !editingConfig && (
             <div className="card p-5 flex items-center justify-between gap-4 flex-wrap">
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Splits every respondent in this program with no checker yet evenly across active users holding the checker role.
+                Splits every respondent in this program with no tracer yet evenly across active users holding the tracer role.
               </p>
               {canConfigure && (
                 <button type="button" className="btn-primary" onClick={handleAssign} disabled={assigning}>
@@ -223,12 +251,21 @@ export default function ConfirmAvailabilityPage() {
 
           {result && (
             <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-active-bg)", color: "var(--status-active-fg)" }}>
-              Assigned {result.totalAssigned} of {result.totalCandidates} respondent(s) across {result.checkers?.length ?? 0} checker(s).
+              Assigned {result.totalAssigned} of {result.totalCandidates} respondent(s) across {result.checkers?.length ?? 0} tracer(s).
             </div>
           )}
 
+          {respondents.length > 0 && (
+            <div className="card p-4">
+              <ProgressBar value={checkedCount} total={respondents.length} />
+            </div>
+          )}
+
+          <SearchInput value={query} onChange={setQuery} placeholder="Search by code, name, or phone…" />
+
           <div className="card">
-            <DataTable columns={columns} rows={respondents} emptyLabel="No respondents in this program yet." />
+            <DataTable columns={columns} rows={pageRows} emptyLabel="No respondents in this program yet." />
+            <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
           </div>
         </>
       )}

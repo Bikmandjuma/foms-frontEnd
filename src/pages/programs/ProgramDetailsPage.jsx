@@ -146,6 +146,7 @@ export default function ProgramDetailsPage() {
           <DetailRow label="Description" value={program.description || "—"} />
           <DetailRow label="Scenario" value={program.scenarioType ? program.scenarioType.replaceAll("_", " ") : "—"} />
           <DetailRow label="Status" value={<StatusBadge status={program.status} />} />
+          <DetailRow label="Tracing required" value={program.tracingRequired ? "Yes" : "No"} />
           <DetailRow label="Target sample size" value={program.targetSampleSize ?? "—"} />
           <DetailRow label="Start date" value={program.startDate ? new Date(program.startDate).toLocaleDateString() : "—"} />
           <DetailRow label="End date" value={program.endDate ? new Date(program.endDate).toLocaleDateString() : "—"} />

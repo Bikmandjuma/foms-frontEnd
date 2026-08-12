@@ -29,6 +29,7 @@ import ProgramAssignmentsPage from "./pages/assignments/ProgramAssignmentsPage.j
 import CarAssignmentPage from "./pages/assignments/CarAssignmentPage.jsx";
 import ConfirmAvailabilityPage from "./pages/assignments/ConfirmAvailabilityPage.jsx";
 import VehiclesListPage from "./pages/vehicles/VehiclesListPage.jsx";
+import ExpensesListPage from "./pages/expenses/ExpensesListPage.jsx";
 import VehicleFormPage from "./pages/vehicles/VehicleFormPage.jsx";
 import ReplacementRequestsPage from "./pages/replacements/ReplacementRequestsPage.jsx";
 import FieldMonitoringPage from "./pages/monitoring/FieldMonitoringPage.jsx";
@@ -86,11 +87,12 @@ export default function App() {
 
                     <Route path="assignments/programs" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><ProgramAssignmentsPage /></ProtectedRoute>} />
                     <Route path="assignments/vehicles" element={<ProtectedRoute requires={ACTIONS.TEAMS_VIEW}><CarAssignmentPage /></ProtectedRoute>} />
-                    <Route path="assignments/availability" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><ConfirmAvailabilityPage /></ProtectedRoute>} />
+                    <Route path="assignments/tracing" element={<ProtectedRoute requires={ACTIONS.ASSIGNMENTS_VIEW}><ConfirmAvailabilityPage /></ProtectedRoute>} />
 
                     <Route path="vehicles" element={<ProtectedRoute requires={ACTIONS.VEHICLES_VIEW}><VehiclesListPage /></ProtectedRoute>} />
                     <Route path="vehicles/new" element={<ProtectedRoute requires={ACTIONS.VEHICLES_CREATE}><VehicleFormPage /></ProtectedRoute>} />
                     <Route path="vehicles/:id/edit" element={<ProtectedRoute requires={ACTIONS.VEHICLES_EDIT}><VehicleFormPage /></ProtectedRoute>} />
+                    <Route path="expenses" element={<ProtectedRoute requires={ACTIONS.EXPENSES_VIEW}><ExpensesListPage /></ProtectedRoute>} />
 
                     <Route path="replacements" element={<ProtectedRoute requires={ACTIONS.REPLACEMENTS_VIEW}><ReplacementRequestsPage /></ProtectedRoute>} />
 

@@ -33,6 +33,7 @@ import ExpensesListPage from "./pages/expenses/ExpensesListPage.jsx";
 import VehicleFormPage from "./pages/vehicles/VehicleFormPage.jsx";
 import ReplacementRequestsPage from "./pages/replacements/ReplacementRequestsPage.jsx";
 import FieldMonitoringPage from "./pages/monitoring/FieldMonitoringPage.jsx";
+import FieldTeamReportPage from "./pages/reports/FieldTeamReportPage.jsx";
 import ActivityLogsPage from "./pages/activity/ActivityLogsPage.jsx";
 import TenantsListPage from "./pages/tenants/TenantsListPage.jsx";
 import TenantFormPage from "./pages/tenants/TenantFormPage.jsx";
@@ -96,6 +97,8 @@ export default function App() {
                     <Route path="replacements" element={<ProtectedRoute requires={ACTIONS.REPLACEMENTS_VIEW}><ReplacementRequestsPage /></ProtectedRoute>} />
 
                     <Route path="monitoring" element={<ProtectedRoute requires={ACTIONS.MONITORING_VIEW}><FieldMonitoringPage /></ProtectedRoute>} />
+
+                    <Route path="reports/field-teams" element={<ProtectedRoute requires={ACTIONS.FIELD_TEAM_REPORTS_VIEW}><FieldTeamReportPage /></ProtectedRoute>} />
 
                     <Route path="activity-logs" element={<ProtectedRoute><ActivityLogsPage /></ProtectedRoute>} />
 

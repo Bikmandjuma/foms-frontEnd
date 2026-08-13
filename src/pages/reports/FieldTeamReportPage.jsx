@@ -1,241 +1,3 @@
-// import React, { useEffect, useMemo, useRef, useState } from "react";
-// import { ClipboardList, Calendar, Download, ChevronDown, FileText, FileSpreadsheet } from "lucide-react";
-// import DataTable from "../../components/DataTable.jsx";
-// import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
-// import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
-// import { Field, SelectInput, TextInput } from "../../components/FormField.jsx";
-// import { fieldTeamReportsApi } from "../../api/fieldTeamReports.api.js";
-// import { programsApi } from "../../api/programs.api.js";
-// import { downloadBlob } from "../../utils/downloadBlob.js";
-// import { useToast } from "../../context/ToastContext.jsx";
-
-// const SEARCH_FIELDS = ["teamName", "district", "supervisorName", "staffName", "staffRole", "respondentName", "sector", "cell"];
-
-// export default function FieldTeamReportPage() {
-//   const toast = useToast();
-
-//   const [programs, setPrograms] = useState([]);
-//   const [programId, setProgramId] = useState("");
-//   const [startDate, setStartDate] = useState("");
-//   const [endDate, setEndDate] = useState("");
-//   const [rows, setRows] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-//   const [exporting, setExporting] = useState(false);
-//   const [exportMenuOpen, setExportMenuOpen] = useState(false);
-//   const exportMenuRef = useRef(null);
-
-//   useEffect(() => {
-//     programsApi
-//       .list()
-//       .then((list) => {
-//         setPrograms(list);
-//         if (list.length > 0) setProgramId((prev) => prev || list[0].id);
-//       })
-//       .catch(() => {});
-//   }, []);
-
-//   // A user could type an end date before the start date, or clear one after
-//   // setting the other — catch that here instead of letting the request fail.
-//   const dateRangeError = startDate && endDate && endDate < startDate ? "End date can't be before the start date." : "";
-
-//   useEffect(() => {
-//     function onClickOutside(e) {
-//       if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setExportMenuOpen(false);
-//     }
-//     document.addEventListener("mousedown", onClickOutside);
-//     return () => document.removeEventListener("mousedown", onClickOutside);
-//   }, []);
-
-//   async function loadReport() {
-//     if (!programId || dateRangeError) return;
-//     setLoading(true);
-//     setError("");
-//     try {
-//       const res = await fieldTeamReportsApi.list({
-//         programId,
-//         startDate: startDate || undefined,
-//         endDate: endDate || undefined,
-//         pageSize: 1000,
-//       });
-//       setRows(res.rows || []);
-//     } catch (err) {
-//       setError(err.message || "Couldn't load the field team report.");
-//       setRows([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   }
-
-//   useEffect(() => {
-//     loadReport();
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [programId, startDate, endDate]);
-
-//   const { filtered, query, setQuery } = useSearchedRows(rows, SEARCH_FIELDS);
-//   const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
-
-//   async function handleExport(format) {
-//     setExportMenuOpen(false);
-//     if (!programId || dateRangeError) return;
-//     setExporting(true);
-//     try {
-//       const blob = await fieldTeamReportsApi.export({
-//         programId,
-//         startDate: startDate || undefined,
-//         endDate: endDate || undefined,
-//         // Exports exactly what's on screen, including the current search.
-//         search: query || undefined,
-//         format,
-//       });
-//       const dateSuffix = new Date().toISOString().slice(0, 10);
-//       downloadBlob(blob, `field-team-report-${dateSuffix}.${format}`);
-//       toast.success(`Field team report downloaded as ${format.toUpperCase()}`);
-//     } catch (err) {
-//       toast.error(err.message || "Couldn't export the report.");
-//     } finally {
-//       setExporting(false);
-//     }
-//   }
-
-//   const columns = useMemo(
-//     () => [
-//       { key: "teamName", label: "Team" },
-//       {
-//         key: "supervisor",
-//         label: "Supervisor",
-//         render: (r) => (
-//           <div>
-//             <div>{r.supervisorName || "—"}</div>
-//             {r.supervisorPhone && (
-//               <div className="text-xs" style={{ color: "var(--muted)" }}>
-//                 {r.supervisorPhone}
-//               </div>
-//             )}
-//           </div>
-//         ),
-//       },
-//       {
-//         key: "staff",
-//         label: "Field Staff (Role)",
-//         render: (r) => (
-//           <div>
-//             <div>{r.staffName}</div>
-//             <div className="text-xs" style={{ color: "var(--muted)" }}>
-//               {r.staffRole || "—"}
-//               {r.staffPhone ? ` · ${r.staffPhone}` : ""}
-//             </div>
-//           </div>
-//         ),
-//       },
-//       {
-//         key: "respondent",
-//         label: "Respondent Assigned",
-//         render: (r) => (
-//           <div>
-//             <div>{r.respondentName || "—"}</div>
-//             {r.respondentPhone && (
-//               <div className="text-xs" style={{ color: "var(--muted)" }}>
-//                 {r.respondentPhone}
-//               </div>
-//             )}
-//           </div>
-//         ),
-//       },
-//       { key: "district", label: "District", render: (r) => r.district || "—" },
-//       { key: "sector", label: "Sector", render: (r) => r.sector || "—" },
-//       { key: "cell", label: "Cell", render: (r) => r.cell || "—" },
-//       {
-//         key: "challengesObservations",
-//         label: "Challenges & Observations",
-//         render: (r) => <span style={{ whiteSpace: "pre-wrap" }}>{r.notes}</span>,
-//       },
-//     ],
-//     []
-//   );
-
-//   return (
-//     <div className="flex flex-col gap-4">
-//       <div className="flex items-start justify-between gap-3 flex-wrap">
-//         <div>
-//           <h1 className="text-xl font-semibold" style={{ color: "var(--text)" }}>
-//             Field Team Report
-//           </h1>
-//           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-//             Per-team field staff, their assigned respondents, and reported challenges &amp; observations.
-//           </p>
-//         </div>
-
-//         <div className="relative" ref={exportMenuRef}>
-//           <button
-//             className="btn-secondary"
-//             onClick={() => setExportMenuOpen((o) => !o)}
-//             disabled={exporting || !programId || Boolean(dateRangeError)}
-//           >
-//             <Download size={16} />
-//             {exporting ? "Preparing…" : "Export"}
-//             <ChevronDown size={14} />
-//           </button>
-//           {exportMenuOpen && (
-//             <div
-//               className="absolute right-0 mt-1 rounded-lg shadow-lg z-10"
-//               style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", minWidth: 160 }}
-//             >
-//               <button
-//                 className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm table-row"
-//                 onClick={() => handleExport("pdf")}
-//               >
-//                 <FileText size={15} /> Export as PDF
-//               </button>
-//               <button
-//                 className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm table-row"
-//                 onClick={() => handleExport("csv")}
-//               >
-//                 <FileSpreadsheet size={15} /> Export as CSV
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       <div className="card p-4 flex flex-col gap-4">
-//         <div className="flex items-end gap-3 flex-wrap">
-//           <Field label="Program" required>
-//             <SelectInput icon={ClipboardList} value={programId} onChange={(e) => setProgramId(e.target.value)} style={{ minWidth: 220 }}>
-//               {programs.length === 0 && <option value="">No programs yet</option>}
-//               {programs.map((p) => (
-//                 <option key={p.id} value={p.id}>
-//                   {p.name}
-//                 </option>
-//               ))}
-//             </SelectInput>
-//           </Field>
-
-//           <Field label="From">
-//             <TextInput icon={Calendar} type="date" value={startDate} max={endDate || undefined} onChange={(e) => setStartDate(e.target.value)} />
-//           </Field>
-
-//           <Field label="To" error={dateRangeError}>
-//             <TextInput icon={Calendar} type="date" value={endDate} min={startDate || undefined} onChange={(e) => setEndDate(e.target.value)} />
-//           </Field>
-
-//           <SearchInput value={query} onChange={setQuery} placeholder="Search team, staff, respondent…" />
-//         </div>
-
-//         {error && (
-//           <div className="text-sm px-3 py-2 rounded-lg" style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}>
-//             {error}
-//           </div>
-//         )}
-
-//         <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No field team data for the selected filters." />
-//         <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
-//       </div>
-//     </div>
-//   );
-// }
-
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ClipboardList,
@@ -245,8 +7,10 @@ import {
   FileText,
   FileSpreadsheet,
   Clock3,
+  Users2,
 } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
+import StatusBadge from "../../components/StatusBadge.jsx";
 import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
 import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
 import {
@@ -256,6 +20,7 @@ import {
 } from "../../components/FormField.jsx";
 import { fieldTeamReportsApi } from "../../api/fieldTeamReports.api.js";
 import { programsApi } from "../../api/programs.api.js";
+import { programTeamsApi } from "../../api/programTeams.api.js";
 import { downloadBlob } from "../../utils/downloadBlob.js";
 import { useToast } from "../../context/ToastContext.jsx";
 
@@ -278,14 +43,29 @@ const REPORT_PERIODS = [
   { value: "lifetime", label: "Lifetime" },
 ];
 
+const STATUS_OPTIONS = [
+  { value: "", label: "All statuses" },
+  { value: "PENDING", label: "Pending" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "REFUSED", label: "Refused" },
+  { value: "NOT_FOUND", label: "Not found" },
+  { value: "RELOCATED", label: "Relocated" },
+  { value: "DECEASED", label: "Deceased" },
+  { value: "REPLACED", label: "Replaced" },
+  { value: "NOT_ASSIGNED", label: "Not assigned" },
+];
+
 export default function FieldTeamReportPage() {
   const toast = useToast();
 
   const [programs, setPrograms] = useState([]);
   const [programId, setProgramId] = useState("");
+  const [groups, setGroups] = useState([]);
+  const [teamId, setTeamId] = useState("");
 
   // New report period
   const [period, setPeriod] = useState("daily");
+  const [status, setStatus] = useState("");
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -297,6 +77,22 @@ export default function FieldTeamReportPage() {
 
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const exportMenuRef = useRef(null);
+
+  // ============================================================
+  // LOAD GROUPS FOR THE SELECTED PROGRAM
+  // ============================================================
+
+  useEffect(() => {
+    setTeamId("");
+    if (!programId) {
+      setGroups([]);
+      return;
+    }
+    programTeamsApi
+      .listGroups(programId)
+      .then((list) => setGroups(list.filter((g) => g.adopted)))
+      .catch(() => setGroups([]));
+  }, [programId]);
 
   // ============================================================
   // LOAD PROGRAMS
@@ -363,9 +159,12 @@ export default function FieldTeamReportPage() {
     try {
       const res = await fieldTeamReportsApi.list({
         programId,
+        teamId: teamId || undefined,
 
-        // New period filter
-        period,
+        // "Lifetime" means no date restriction at all — don't send period
+        // in that case so the backend doesn't apply any window.
+        period: period === "lifetime" ? undefined : period,
+        status: status || undefined,
 
         startDate: startDate || undefined,
         endDate: endDate || undefined,
@@ -392,7 +191,7 @@ export default function FieldTeamReportPage() {
     loadReport();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [programId, period, startDate, endDate]);
+  }, [programId, teamId, period, status, startDate, endDate]);
 
   // ============================================================
   // SEARCH + PAGINATION
@@ -428,9 +227,11 @@ export default function FieldTeamReportPage() {
     try {
       const blob = await fieldTeamReportsApi.export({
         programId,
+        teamId: teamId || undefined,
 
-        // Send selected period to backend
-        period,
+        // Send selected period to backend ("lifetime" = no date window)
+        period: period === "lifetime" ? undefined : period,
+        status: status || undefined,
 
         startDate: startDate || undefined,
         endDate: endDate || undefined,
@@ -550,11 +351,17 @@ export default function FieldTeamReportPage() {
       },
 
       {
+        key: "status",
+        label: "Status",
+        render: (r) => <StatusBadge status={r.status} label={r.statusLabel} />,
+      },
+
+      {
         key: "challengesObservations",
-        label: "Challenges & Observations",
+        label: "Notes",
         render: (r) => (
           <span style={{ whiteSpace: "pre-wrap" }}>
-            {r.notes || "—"}
+            {r.notes || (r.status !== r.statusLabel ? <span style={{ color: "var(--muted)" }}>{r.statusLabel}</span> : "—")}
           </span>
         ),
       },
@@ -694,6 +501,27 @@ export default function FieldTeamReportPage() {
           </Field>
 
           {/* ==================================================
+              GROUP
+          ================================================== */}
+
+          <Field label="Group">
+            <SelectInput
+              icon={Users2}
+              value={teamId}
+              onChange={(e) => setTeamId(e.target.value)}
+              disabled={groups.length === 0}
+              style={{ minWidth: 200 }}
+            >
+              <option value="">All groups</option>
+              {groups.map((g) => (
+                <option key={g.teamId} value={g.teamId}>
+                  {g.groupName || g.groupCode}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+
+          {/* ==================================================
               REPORT PERIOD
           ================================================== */}
 
@@ -748,6 +576,22 @@ export default function FieldTeamReportPage() {
                 setEndDate(e.target.value)
               }
             />
+          </Field>
+
+          {/* STATUS */}
+
+          <Field label="Status">
+            <SelectInput
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              style={{ minWidth: 160 }}
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </SelectInput>
           </Field>
 
           {/* SEARCH */}

@@ -71,8 +71,8 @@ export default function CarAssignmentPage() {
     }
   }
 
-  async function handleAddVehicle(teamId) {
-    const vehicleId = vehiclePicks[teamId];
+  async function handleAddVehicle(teamId, explicitVehicleId) {
+    const vehicleId = explicitVehicleId || vehiclePicks[teamId];
     if (!vehicleId) return;
     setError("");
     try {
@@ -160,7 +160,26 @@ export default function CarAssignmentPage() {
             {teams.map((team) => {
               const headcount = team.members.length + (team.leader ? 1 : 0);
               const seats = team.vehicles.reduce((n, tv) => n + (tv.vehicle.capacityPerDay ?? 0), 0);
-              const short = team.vehicles.length > 0 && seats < headcount;
+              const takenVehicleIds = new Set(team.vehicles.map((tv) => tv.vehicle.id));
+              const remainingGap = headcount - seats;
+              const short = team.vehicles.length === 0 || remainingGap > 0;
+
+              // The car this group needs next: the smallest available vehicle
+              // that alone covers what's still missing, or — if none is big
+              // enough on its own — the largest one available, so adding it
+              // makes real progress toward covering everyone.
+              let recommendedVehicle = null;
+              if (short && remainingGap > 0) {
+                const candidates = availableVehicles.filter(
+                  (v) => !takenVehicleIds.has(v.id) && v.capacityPerDay != null
+                );
+                const sufficientAsc = candidates
+                  .filter((v) => v.capacityPerDay >= remainingGap)
+                  .sort((a, b) => a.capacityPerDay - b.capacityPerDay);
+                recommendedVehicle =
+                  sufficientAsc[0] ?? [...candidates].sort((a, b) => b.capacityPerDay - a.capacityPerDay)[0] ?? null;
+              }
+
               return (
                 <div key={team.id} className="card p-5 flex flex-col gap-4">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -196,12 +215,35 @@ export default function CarAssignmentPage() {
                         )}
                       </span>
                     ))}
-                    {short && (
+                    {team.vehicles.length > 0 && remainingGap > 0 && (
                       <span className="badge" style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}>
-                        Short {headcount - seats} seat(s)
+                        Short {remainingGap} seat(s)
                       </span>
                     )}
                   </div>
+
+                  {canEdit && recommendedVehicle && (
+                    <div
+                      className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 flex-wrap"
+                      style={{ backgroundColor: "rgba(108,92,231,0.08)" }}
+                    >
+                      <span className="text-xs flex items-center gap-1.5" style={{ color: "var(--violet)" }}>
+                        <Wand2 size={13} />
+                        This group is full — recommended next car:{" "}
+                        <strong>
+                          {recommendedVehicle.name} ({recommendedVehicle.capacityPerDay} seats)
+                        </strong>
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ height: 28, padding: "0 10px" }}
+                        onClick={() => handleAddVehicle(team.id, recommendedVehicle.id)}
+                      >
+                        Add this car
+                      </button>
+                    </div>
+                  )}
 
                   {canEdit && (
                     <div className="flex items-center gap-2">

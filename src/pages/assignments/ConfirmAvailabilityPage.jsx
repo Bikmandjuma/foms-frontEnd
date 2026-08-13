@@ -2,33 +2,15 @@ import React, { useEffect, useState } from "react";
 import { ClipboardList, ShieldCheck, Wand2 } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
-import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
 import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
+import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
 import { Field, SelectInput } from "../../components/FormField.jsx";
-import AssignRespondentsCard from "../../components/AssignRespondentsCard.jsx";
 import { programsApi } from "../../api/programs.api.js";
 import { rolesApi } from "../../api/roles.api.js";
 import { availabilityChecksApi } from "../../api/availabilityChecks.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
 import { ACTIONS } from "../../permissions/permissions.js";
-
-function ProgressBar({ value, total }) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--surface-2)" }}>
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${pct}%`, backgroundColor: total > 0 && value >= total ? "var(--teal)" : "var(--violet)" }}
-        />
-      </div>
-      <span className="mono text-xs shrink-0" style={{ color: "var(--muted)" }}>
-        {value}/{total} checked
-      </span>
-    </div>
-  );
-}
 
 export default function ConfirmAvailabilityPage() {
   const { can } = usePermissions();
@@ -92,7 +74,7 @@ export default function ConfirmAvailabilityPage() {
       await availabilityChecksApi.updateConfig({ programId, checkerRoleId });
       await loadProgramData(programId);
       setEditingConfig(false);
-      toast.success("Tracing configuration saved");
+      toast.success("Checker configuration saved");
     } catch (err) {
       setError(err.message || "Couldn't save this configuration.");
     } finally {
@@ -121,10 +103,14 @@ export default function ConfirmAvailabilityPage() {
   }
 
   const hasConfig = !!program?.checkerRoleId;
-  const checkedCount = respondents.filter((r) => r.availabilityChecks?.[0] && r.availabilityChecks[0].status !== "PENDING").length;
 
-  const { filtered, query, setQuery } = useSearchedRows(respondents, ["code", "name", "telephone"]);
-  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
+  const { filtered: filteredRespondents, query: respondentQuery, setQuery: setRespondentQuery } = useSearchedRows(respondents, [
+    "code",
+    "name",
+    "telephone",
+  ]);
+  const { pageRows: respondentPageRows, page: respondentPage, pageSize: respondentPageSize, setPage: setRespondentPage, setPageSize: setRespondentPageSize } =
+    usePagedRows(filteredRespondents, 10);
 
   const columns = [
     { key: "code", label: "Code", render: (r) => <span className="mono">{r.code}</span> },
@@ -137,7 +123,7 @@ export default function ConfirmAvailabilityPage() {
     },
     {
       key: "checker",
-      label: "Assigned tracer",
+      label: "Assigned checker",
       render: (r) => {
         const checker = r.availabilityChecks?.[0]?.user;
         return checker ? checker.name || checker.email : "—";
@@ -184,16 +170,12 @@ export default function ConfirmAvailabilityPage() {
 
       {programId && !programLoading && (
         <>
-          {canConfigure && program?.tracingRequired && (
-            <AssignRespondentsCard programId={programId} canAssign={canConfigure} onAssigned={() => loadProgramData(programId)} />
-          )}
-
           {canConfigure && hasConfig && !editingConfig && (
             <div className="card p-5 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
                 <ShieldCheck size={16} color="var(--violet)" />
                 <span className="text-sm" style={{ color: "var(--text)" }}>
-                  Tracer role: <strong>{program.checkerRole?.name}</strong>
+                  Checker role: <strong>{program.checkerRole?.name}</strong>
                 </span>
               </div>
               <button type="button" className="btn-secondary" onClick={() => setEditingConfig(true)}>
@@ -207,11 +189,11 @@ export default function ConfirmAvailabilityPage() {
               <div className="flex items-center gap-2">
                 <ShieldCheck size={16} color="var(--violet)" />
                 <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-                  {hasConfig ? "Edit tracing configuration" : "Tracing configuration"}
+                  {hasConfig ? "Edit checker configuration" : "Checker configuration"}
                 </p>
               </div>
               <div className="max-w-sm">
-                <Field label="Role responsible for tracing" required>
+                <Field label="Role responsible for checking" required>
                   <SelectInput required value={checkerRoleId} onChange={(e) => setCheckerRoleId(e.target.value)}>
                     <option value="" className="text-black">Select a role…</option>
                     {roles.map((r) => (
@@ -238,7 +220,7 @@ export default function ConfirmAvailabilityPage() {
           {hasConfig && !editingConfig && (
             <div className="card p-5 flex items-center justify-between gap-4 flex-wrap">
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                Splits every respondent in this program with no tracer yet evenly across active users holding the tracer role.
+                Splits every respondent in this program with no checker yet evenly across active users holding the checker role.
               </p>
               {canConfigure && (
                 <button type="button" className="btn-primary" onClick={handleAssign} disabled={assigning}>
@@ -251,21 +233,31 @@ export default function ConfirmAvailabilityPage() {
 
           {result && (
             <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-active-bg)", color: "var(--status-active-fg)" }}>
-              Assigned {result.totalAssigned} of {result.totalCandidates} respondent(s) across {result.checkers?.length ?? 0} tracer(s).
+              Assigned {result.totalAssigned} of {result.totalCandidates} respondent(s) across {result.checkers?.length ?? 0} checker(s).
             </div>
           )}
 
-          {respondents.length > 0 && (
-            <div className="card p-4">
-              <ProgressBar value={checkedCount} total={respondents.length} />
-            </div>
-          )}
-
-          <SearchInput value={query} onChange={setQuery} placeholder="Search by code, name, or phone…" />
-
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <p className="text-sm font-medium flex items-center gap-2" style={{ color: "var(--text)" }}>
+              Respondents
+              <span
+                className="mono text-xs font-medium px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}
+              >
+                {filteredRespondents.length}
+              </span>
+            </p>
+            <SearchInput value={respondentQuery} onChange={setRespondentQuery} placeholder="Search by code, name, or phone…" />
+          </div>
           <div className="card">
-            <DataTable columns={columns} rows={pageRows} emptyLabel="No respondents in this program yet." />
-            <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            <DataTable columns={columns} rows={respondentPageRows} emptyLabel="No respondents in this program yet." />
+            <Pagination
+              page={respondentPage}
+              pageSize={respondentPageSize}
+              total={filteredRespondents.length}
+              onPageChange={setRespondentPage}
+              onPageSizeChange={setRespondentPageSize}
+            />
           </div>
         </>
       )}

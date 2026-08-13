@@ -24,13 +24,18 @@ const MAP = {
   // Availability check
   AVAILABLE: { bg: "var(--status-active-bg)", fg: "var(--status-active-fg)" },
   NOT_AVAILABLE: { bg: "var(--status-suspended-bg)", fg: "var(--status-suspended-fg)" },
+  // Field team report — no respondent assigned yet
+  NOT_ASSIGNED: { bg: "var(--status-inactive-bg)", fg: "var(--status-inactive-fg)" },
+  // Daily field operations
+  ABSENT: { bg: "var(--status-suspended-bg)", fg: "var(--status-suspended-fg)" },
+  CHECKED_OUT: { bg: "var(--status-inactive-bg)", fg: "var(--status-inactive-fg)" },
 };
 
-export default function StatusBadge({ status }) {
+export default function StatusBadge({ status, label }) {
   const s = MAP[status] || MAP.INACTIVE;
   return (
     <span className="badge" style={{ backgroundColor: s.bg, color: s.fg }}>
-      {status}
+      {label || status}
     </span>
   );
 }

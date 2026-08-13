@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
+import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
+import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
 import { tenantsApi } from "../../api/tenants.api.js";
 
 export default function TenantsListPage() {
@@ -10,6 +12,9 @@ export default function TenantsListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [pendingDelete, setPendingDelete] = useState(null);
+
+  const { filtered, query, setQuery } = useSearchedRows(rows, ["name"]);
+  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
 
   async function load() {
     setLoading(true);
@@ -64,6 +69,12 @@ export default function TenantsListPage() {
         <div>
           <h2 className="display text-xl font-semibold" style={{ color: "var(--text)" }}>
             Tenants
+            <span
+              className="mono text-xs font-medium ml-2 align-middle px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}
+            >
+              {filtered.length}
+            </span>
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
             Platform-admin only. Every customer workspace on Huska.
@@ -81,8 +92,11 @@ export default function TenantsListPage() {
         </div>
       )}
 
+      <SearchInput value={query} onChange={setQuery} placeholder="Search tenants by name…" />
+
       <div className="card">
-        <DataTable columns={columns} rows={rows} loading={loading} emptyLabel="No tenants yet ,add the first one." />
+        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No tenants yet ,add the first one." />
+        <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       <ConfirmDialog

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
+import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import { tenantsApi } from "../../api/tenants.api.js";
 import { resolveAssetUrl } from "../../api/client.js";
@@ -24,6 +25,7 @@ export default function TenantAdminsPage() {
   const [error, setError] = useState("");
 
   const { filtered, query, setQuery } = useSearchedRows(rows, ["name", "email", "tenant.name"]);
+  const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +81,12 @@ export default function TenantAdminsPage() {
       <div>
         <h2 className="display text-xl font-semibold" style={{ color: "var(--text)" }}>
           Tenant administrators
+          <span
+            className="mono text-xs font-medium ml-2 align-middle px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}
+          >
+            {filtered.length}
+          </span>
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
           Every tenant's admin, across the whole platform. Click through to see a tenant's activity, read-only.
@@ -94,7 +102,8 @@ export default function TenantAdminsPage() {
       <SearchInput value={query} onChange={setQuery} placeholder="Search by name, email, or tenant…" />
 
       <div className="card">
-        <DataTable columns={columns} rows={filtered} loading={loading} emptyLabel="No tenant administrators yet." />
+        <DataTable columns={columns} rows={pageRows} loading={loading} emptyLabel="No tenant administrators yet." />
+        <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   );

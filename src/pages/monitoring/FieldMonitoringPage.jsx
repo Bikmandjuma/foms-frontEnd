@@ -17,7 +17,6 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { Field, SelectInput, TextInput, TextArea } from "../../components/FormField.jsx";
-import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
 import { fieldCheckInsApi } from "../../api/fieldCheckIns.api.js";
 import { programsApi } from "../../api/programs.api.js";
 import { downloadBlob } from "../../utils/downloadBlob.js";
@@ -133,14 +132,6 @@ function RespondentsModal({ checkIn, isOwner, canOverride, onClose, onChanged })
         (r.beneficiary.sector?.name || "").toLowerCase().includes(q)
     );
   }, [data, search]);
-
-  const {
-    pageRows: pagedFiltered,
-    page: respondentsPage,
-    pageSize: respondentsPageSize,
-    setPage: setRespondentsPage,
-    setPageSize: setRespondentsPageSize,
-  } = usePagedRows(filtered, 10);
 
   async function handleOutcome(beneficiaryId, outcome) {
     setSavingId(beneficiaryId);
@@ -269,7 +260,7 @@ function RespondentsModal({ checkIn, isOwner, canOverride, onClose, onChanged })
                   {total === 0 ? "No respondents assigned for today." : "No respondents match that search."}
                 </p>
               )}
-              {pagedFiltered.map((r) => {
+              {filtered.map((r) => {
                 const outcome = r.visit?.outcome || "PENDING";
                 const style = OUTCOME_STYLE[outcome] || OUTCOME_STYLE.PENDING;
                 const saving = savingId === r.beneficiary.id;
@@ -287,11 +278,6 @@ function RespondentsModal({ checkIn, isOwner, canOverride, onClose, onChanged })
                         <MapPin size={11} />
                         {[r.beneficiary.village?.name, r.beneficiary.sector?.name].filter(Boolean).join(", ") || "—"}
                       </p>
-                      {r.visit && r.visit.confirmationStatus === "PENDING" && (
-                        <p className="text-xs mt-0.5" style={{ color: "var(--amber)" }}>
-                          Waiting confirmation
-                        </p>
-                      )}
                     </div>
                     {canEditOutcomes ? (
                       <select
@@ -317,16 +303,6 @@ function RespondentsModal({ checkIn, isOwner, canOverride, onClose, onChanged })
                 );
               })}
             </div>
-
-            {filtered.length > 0 && (
-              <Pagination
-                page={respondentsPage}
-                pageSize={respondentsPageSize}
-                total={filtered.length}
-                onPageChange={setRespondentsPage}
-                onPageSizeChange={setRespondentsPageSize}
-              />
-            )}
 
             {/* Field notes */}
             <div className="pt-4" style={{ borderTop: "1px solid var(--border)" }}>
@@ -493,12 +469,8 @@ export default function FieldMonitoringPage() {
     if (!rosterData) return [];
     const q = search.trim().toLowerCase();
     if (!q) return rosterData.roster;
-    return rosterData.roster.filter(
-      (r) => r.name.toLowerCase().includes(q) || (r.email || "").toLowerCase().includes(q)
-    );
+    return rosterData.roster.filter((r) => r.name.toLowerCase().includes(q));
   }, [rosterData, search]);
-
-  const { pageRows: pagedRoster, page, pageSize, setPage, setPageSize } = usePagedRows(filteredRoster, 10);
 
   const summary = rosterData?.summary;
 
@@ -636,7 +608,7 @@ export default function FieldMonitoringPage() {
               </tr>
             </thead>
             <tbody>
-              {pagedRoster.map((r) => (
+              {filteredRoster.map((r) => (
                 <tr key={r.userId} className="table-row" style={{ borderBottom: "1px solid var(--border)" }}>
                   <td className="py-3 px-4" style={{ color: "var(--text)" }}>
                     {r.name}
@@ -703,7 +675,6 @@ export default function FieldMonitoringPage() {
             </tbody>
           </table>
         )}
-        <Pagination page={page} pageSize={pageSize} total={filteredRoster.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       {modalCheckIn && (

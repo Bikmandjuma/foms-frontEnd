@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, Sun, Moon, ChevronDown, Settings, LogOut, UserCircle, Bell, CheckCheck, Repeat, UserPlus, Info } from "lucide-react";
+import { Menu, Sun, Moon, ChevronDown, Settings, LogOut, UserCircle, Bell, CheckCheck, Repeat, UserPlus, Info, Search } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { resolveAssetUrl } from "../api/client.js";
@@ -202,6 +202,18 @@ export default function Topbar({ title, onOpenMobileNav }) {
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          className="hidden sm:flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-xl"
+          style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-command-palette"))}
+        >
+          <Search size={14} />
+          Search
+          <kbd className="text-xs px-1 py-0.5 rounded" style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}>
+            ⌘K
+          </kbd>
+        </button>
+
         <button className="theme-toggle-track" onClick={toggleTheme} aria-label="Toggle dark mode" aria-pressed={isDark}>
           <div className="theme-toggle-thumb">{isDark ? <Moon size={12} color="#8790A3" /> : <Sun size={12} color="#D98A0E" />}</div>
         </button>

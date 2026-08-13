@@ -1,7 +1,8 @@
 import React, { useRef, useState } from "react";
-import { Sun, Moon, Camera, User as UserIcon } from "lucide-react";
+import { Sun, Moon, Camera, User as UserIcon, KeyRound } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import { useNavigate } from "react-router-dom";
 import { Field, TextInput, SelectInput } from "../../components/FormField.jsx";
 import GeoCascadeSelect from "../../components/GeoCascadeSelect.jsx";
 import { usersApi } from "../../api/users.api.js";
@@ -11,14 +12,18 @@ import { useToast } from "../../context/ToastContext.jsx";
 const GENDERS = ["MALE", "FEMALE", "OTHER"];
 
 export default function SettingsPage() {
-  const { user, refresh } = useAuth();
+  const { user, refresh, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const toast = useToast();
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
   const [form, setForm] = useState({
     firstName: user?.firstName || (user?.name ? user.name.split(" ")[0] : ""),
     lastName: user?.lastName || (user?.name ? user.name.split(" ").slice(1).join(" ") : ""),
@@ -68,6 +73,33 @@ export default function SettingsPage() {
       setError(err.message || "Couldn't save your profile.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleChangePassword(e) {
+    e.preventDefault();
+    setPasswordError("");
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New password and confirmation don't match.");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      await usersApi.changeMyPassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      toast.success("Password changed — please sign in again with your new password.");
+      await logout();
+      navigate("/login");
+    } catch (err) {
+      setPasswordError(err.message || "Couldn't change your password.");
+    } finally {
+      setPasswordSaving(false);
     }
   }
 
@@ -194,6 +226,55 @@ export default function SettingsPage() {
         <div className="flex justify-end pt-2">
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? "Saving…" : "Save changes"}
+          </button>
+        </div>
+      </form>
+
+      <form onSubmit={handleChangePassword} className="card p-6 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <KeyRound size={16} style={{ color: "var(--violet)" }} />
+          <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+            Change password
+          </p>
+        </div>
+
+        {passwordError && (
+          <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}>
+            {passwordError}
+          </div>
+        )}
+
+        <Field label="Current password" required>
+          <TextInput
+            type="password"
+            required
+            value={passwordForm.currentPassword}
+            onChange={(e) => setPasswordForm((f) => ({ ...f, currentPassword: e.target.value }))}
+          />
+        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="New password" required hint="Minimum 8 characters">
+            <TextInput
+              type="password"
+              required
+              minLength={8}
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm((f) => ({ ...f, newPassword: e.target.value }))}
+            />
+          </Field>
+          <Field label="Confirm new password" required>
+            <TextInput
+              type="password"
+              required
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+            />
+          </Field>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button type="submit" className="btn-primary" disabled={passwordSaving}>
+            {passwordSaving ? "Changing…" : "Change password"}
           </button>
         </div>
       </form>

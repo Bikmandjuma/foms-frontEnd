@@ -180,6 +180,12 @@ export default function ActivityLogsPage() {
         <div>
           <h2 className="display text-xl font-semibold" style={{ color: "var(--text)" }}>
             Activity logs
+            <span
+              className="mono text-xs font-medium ml-2 align-middle px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}
+            >
+              {filtered.length}
+            </span>
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
             The full audit trail for this tenant updates live as things happen.

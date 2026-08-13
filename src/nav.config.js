@@ -10,8 +10,11 @@ import {
   Radar,
   History,
   Truck,
-  Receipt,
   FileBarChart,
+  Radio,
+  Wallet,
+  Users2,
+  Clock,
 } from "lucide-react";
 import { ACTIONS } from "./permissions/permissions.js";
 
@@ -84,18 +87,10 @@ export const NAV = [
     children: [
       { label: "Program assignments", to: "/assignments/programs" },
       { label: "Car assignment", to: "/assignments/vehicles", requires: ACTIONS.TEAMS_VIEW },
-      { label: "Tracing", to: "/assignments/tracing" },
+      { label: "Tracing", to: "/assignments/availability" },
     ],
   },
 
-  {
-    type: "link",
-    key: "expenses",
-    label: "Field expenses",
-    icon: Receipt,
-    to: "/expenses",
-    requires: ACTIONS.EXPENSES_VIEW,
-  },
   {
     type: "link",
     key: "replacements",
@@ -103,6 +98,14 @@ export const NAV = [
     icon: Repeat,
     to: "/replacements",
     requires: ACTIONS.REPLACEMENTS_VIEW,
+  },
+  {
+    type: "link",
+    key: "assign-groups",
+    label: "Assign groups",
+    icon: Users2,
+    to: "/assign-groups",
+    requires: ACTIONS.TEAMS_VIEW,
   },
   {
     type: "link",
@@ -114,11 +117,35 @@ export const NAV = [
   },
   {
     type: "link",
+    key: "live-map",
+    label: "Live field map",
+    icon: Radio,
+    to: "/live-map",
+    requires: ACTIONS.MONITORING_VIEW,
+  },
+  {
+    type: "link",
+    key: "daily-ops",
+    label: "Daily field operations",
+    icon: Clock,
+    to: "/daily-operations",
+    requires: ACTIONS.MONITORING_VIEW,
+  },
+  {
+    type: "link",
     key: "field-team-reports",
     label: "Field team reports",
     icon: FileBarChart,
     to: "/reports/field-teams",
     requires: ACTIONS.FIELD_TEAM_REPORTS_VIEW,
+  },
+  {
+    type: "link",
+    key: "field-expenses",
+    label: "Field expenses",
+    icon: Wallet,
+    to: "/field-expenses",
+    requires: ACTIONS.EXPENSES_VIEW,
   },
   {
     type: "link",

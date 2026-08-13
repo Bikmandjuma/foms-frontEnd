@@ -11,4 +11,11 @@ export const usersApi = {
     formData.append("avatar", file);
     return client.post("/users/me/avatar", formData, { headers: { "Content-Type": "multipart/form-data" } });
   },
+  changeMyPassword: (payload) => client.post("/users/me/change-password", payload),
+  downloadGroupsTemplate: () => client.get("/users/import-groups/template", { responseType: "blob" }),
+  importGroups: (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return client.post("/users/import-groups", formData, { headers: { "Content-Type": "multipart/form-data" } });
+  },
 };

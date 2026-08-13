@@ -20,10 +20,11 @@ const EMPTY = {
   cellId: "",
   villageId: "",
   gender: "",
-  dateOfBirth: "",
+  ageRange: "",
   status: "ACTIVE",
-  nationalId: "",
-  householdSize: "",
+  ipName: "",
+  category: "",
+  personalId: "",
   programIds: [],
   consentGiven: false,
   outcome: "PENDING",
@@ -63,10 +64,11 @@ export default function BeneficiaryFormPage() {
             cellId: b.cell?.id || "",
             villageId: b.village?.id || "",
             gender: b.gender || "",
-            dateOfBirth: b.dateOfBirth ? b.dateOfBirth.slice(0, 10) : "",
+            ageRange: b.ageRange || "",
             status: b.status || "ACTIVE",
-            nationalId: b.nationalId || "",
-            householdSize: b.householdSize ?? "",
+            ipName: b.ipName || "",
+            category: b.category || "",
+            personalId: b.personalId || "",
             programIds: b.programs?.map((p) => p.id) || [],
             consentGiven: !!b.consentGiven,
             outcome: b.outcome || "PENDING",
@@ -100,10 +102,7 @@ export default function BeneficiaryFormPage() {
     setError("");
     setSaving(true);
     try {
-      const payload = {
-        ...form,
-        householdSize: form.householdSize === "" ? undefined : Number(form.householdSize),
-      };
+      const payload = { ...form };
       Object.keys(payload).forEach((k) => {
         if (payload[k] === "" || payload[k] === undefined) delete payload[k];
       });
@@ -192,8 +191,8 @@ export default function BeneficiaryFormPage() {
               ))}
             </SelectInput>
           </Field>
-          <Field label="Date of birth">
-            <TextInput type="date" value={form.dateOfBirth} onChange={(e) => update("dateOfBirth", e.target.value)} />
+          <Field label="Age" hint="Range like 18-20">
+            <TextInput value={form.ageRange} onChange={(e) => update("ageRange", e.target.value)} placeholder="18-20" />
           </Field>
           <Field label="Status">
             <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
@@ -206,12 +205,15 @@ export default function BeneficiaryFormPage() {
           </Field>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="National ID">
-            <TextInput value={form.nationalId} onChange={(e) => update("nationalId", e.target.value)} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Field label="IP name">
+            <TextInput value={form.ipName} onChange={(e) => update("ipName", e.target.value)} />
           </Field>
-          <Field label="Household size">
-            <TextInput type="number" min="0" value={form.householdSize} onChange={(e) => update("householdSize", e.target.value)} />
+          <Field label="Category">
+            <TextInput value={form.category} onChange={(e) => update("category", e.target.value)} />
+          </Field>
+          <Field label="Personal ID">
+            <TextInput value={form.personalId} onChange={(e) => update("personalId", e.target.value)} />
           </Field>
         </div>
 

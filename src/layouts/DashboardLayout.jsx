@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar.jsx";
 import Topbar from "../components/Topbar.jsx";
+import OnlineUserAlert from "../components/OnlineUserAlert.jsx";
+import CommandPalette from "../components/CommandPalette.jsx";
 import { NAV } from "../nav.config.js";
 
 function titleFor(pathname) {
@@ -22,6 +24,8 @@ export default function DashboardLayout() {
 
   return (
     <div className="w-full min-h-screen flex" style={{ backgroundColor: "var(--bg)" }}>
+      <OnlineUserAlert />
+      <CommandPalette />
       <Sidebar mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
       {mobileOpen && (
         <div

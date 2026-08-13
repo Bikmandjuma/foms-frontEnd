@@ -5,8 +5,8 @@ import { Field, TextInput, TextArea, SelectInput } from "../../components/FormFi
 import { programsApi } from "../../api/programs.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
 
-const SCENARIO_TYPES = ["BASELINE_SURVEY", "ENDLINE_SURVEY", "TRACER_STUDY", "PROGRAM_OUTCOME_ASSESSMENT", "QUALITATIVE_STUDY"];
-const PROJECT_STATUSES = ["PLANNING", "FIELDWORK", "DATA_CLEANING", "REPORTING", "COMPLETED"];
+const SCENARIO_TYPES = ["BASELINE_SURVEY", "ENDLINE_SURVEY", "TRACER_STUDY", "PROGRAM_OUTCOME_ASSESSMENT", "QUALITATIVE_STUDY", "OTHER"];
+const PROJECT_STATUSES = ["PLANNING", "FIELDWORK", "DATA_CLEANING", "REPORTING", "COMPLETED", "OTHER"];
 
 export default function ProgramFormPage() {
   const { id } = useParams();
@@ -18,11 +18,12 @@ export default function ProgramFormPage() {
     name: "",
     description: "",
     scenarioType: "",
+    scenarioTypeOther: "",
     status: "PLANNING",
+    statusOther: "",
     targetSampleSize: "",
     startDate: "",
     endDate: "",
-    tracingRequired: false,
   });
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -40,11 +41,12 @@ export default function ProgramFormPage() {
             name: p.name || "",
             description: p.description || "",
             scenarioType: p.scenarioType || "",
+            scenarioTypeOther: p.scenarioTypeOther || "",
             status: p.status || "PLANNING",
+            statusOther: p.statusOther || "",
             targetSampleSize: p.targetSampleSize ?? "",
             startDate: p.startDate ? p.startDate.slice(0, 10) : "",
             endDate: p.endDate ? p.endDate.slice(0, 10) : "",
-            tracingRequired: !!p.tracingRequired,
           })
       )
       .catch((err) => !cancelled && setError(err.message))
@@ -61,12 +63,22 @@ export default function ProgramFormPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    if (form.scenarioType === "OTHER" && !form.scenarioTypeOther.trim()) {
+      setError("Describe the study scenario when selecting 'Other'.");
+      return;
+    }
+    if (form.status === "OTHER" && !form.statusOther.trim()) {
+      setError("Describe the status when selecting 'Other'.");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
         ...form,
         description: form.description || undefined,
         scenarioType: form.scenarioType || undefined,
+        scenarioTypeOther: form.scenarioType === "OTHER" ? form.scenarioTypeOther : undefined,
+        statusOther: form.status === "OTHER" ? form.statusOther : undefined,
         targetSampleSize: form.targetSampleSize === "" ? undefined : Number(form.targetSampleSize),
         startDate: form.startDate || undefined,
         endDate: form.endDate || undefined,
@@ -112,25 +124,40 @@ export default function ProgramFormPage() {
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Study scenario">
-            <SelectInput value={form.scenarioType} onChange={(e) => update("scenarioType", e.target.value)}>
-              <option value="" className="text-black">—</option>
-              {SCENARIO_TYPES.map((s) => (
-                <option key={s} value={s} className="text-black">
-                  {s.replaceAll("_", " ")}
-                </option>
-              ))}
-            </SelectInput>
-          </Field>
-          <Field label="Status">
-            <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
-              {PROJECT_STATUSES.map((s) => (
-                <option key={s} value={s} className="text-black">
-                  {s.replaceAll("_", " ")}
-                </option>
-              ))}
-            </SelectInput>
-          </Field>
+          <div className="flex flex-col gap-2">
+            <Field label="Study scenario">
+              <SelectInput value={form.scenarioType} onChange={(e) => update("scenarioType", e.target.value)}>
+                <option value="" className="text-black">—</option>
+                {SCENARIO_TYPES.map((s) => (
+                  <option key={s} value={s} className="text-black">
+                    {s === "OTHER" ? "Other…" : s.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            {form.scenarioType === "OTHER" && (
+              <TextInput
+                required
+                value={form.scenarioTypeOther}
+                onChange={(e) => update("scenarioTypeOther", e.target.value)}
+                placeholder="Describe the study scenario"
+              />
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <Field label="Status">
+              <SelectInput value={form.status} onChange={(e) => update("status", e.target.value)}>
+                {PROJECT_STATUSES.map((s) => (
+                  <option key={s} value={s} className="text-black">
+                    {s === "OTHER" ? "Other…" : s.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            {form.status === "OTHER" && (
+              <TextInput required value={form.statusOther} onChange={(e) => update("statusOther", e.target.value)} placeholder="Describe the status" />
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -144,22 +171,6 @@ export default function ProgramFormPage() {
             <TextInput type="date" value={form.endDate} onChange={(e) => update("endDate", e.target.value)} />
           </Field>
         </div>
-
-        <label className="flex items-start gap-2 text-sm" style={{ color: "var(--text)" }}>
-          <input
-            type="checkbox"
-            checked={form.tracingRequired}
-            onChange={(e) => update("tracingRequired", e.target.checked)}
-            style={{ marginTop: 3 }}
-          />
-          <span>
-            Tracing is required
-            <br />
-            <span className="text-xs" style={{ color: "var(--muted)" }}>
-              When checked, the Run assignment button stays disabled until every respondent's tracing status is no longer pending.
-            </span>
-          </span>
-        </label>
 
         <div className="flex justify-end gap-3 pt-2">
           <Link to="/programs" className="btn-secondary">

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, Users2, UserPlus, ChevronDown } from "lucide-react";
 import DataTable from "../../components/DataTable.jsx";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
 import Pagination, { usePagedRows } from "../../components/Pagination.jsx";
 import SearchInput, { useSearchedRows } from "../../components/SearchInput.jsx";
+import { SelectInput } from "../../components/FormField.jsx";
 import { usersApi } from "../../api/users.api.js";
+import { rolesApi } from "../../api/roles.api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
@@ -21,18 +23,34 @@ export default function UsersListPage() {
   const canDelete = can(ACTIONS.USERS_DELETE);
 
   const [rows, setRows] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [roleId, setRoleId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
 
   const { filtered, query, setQuery } = useSearchedRows(rows, ["name", "firstName", "lastName", "email", "telephone", "role.name"]);
   const { pageRows, page, pageSize, setPage, setPageSize } = usePagedRows(filtered, 10);
+
+  useEffect(() => {
+    rolesApi
+      .list()
+      .then((list) => {
+        setRoles(list);
+        // Default view is Supervisors, per spec — falls back to "All roles"
+        // if this tenant doesn't have one named that yet.
+        const supervisor = list.find((r) => r.name.trim().toLowerCase() === "supervisor");
+        if (supervisor) setRoleId(supervisor.id);
+      })
+      .catch(() => {});
+  }, []);
 
   async function load() {
     setLoading(true);
     setError("");
     try {
-      const data = await usersApi.list();
+      const data = await usersApi.list(roleId ? { roleId } : undefined);
       setRows(data);
     } catch (err) {
       setError(err.message || "Couldn't load users.");
@@ -43,7 +61,8 @@ export default function UsersListPage() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleId]);
 
   async function handleDelete() {
     if (!pendingDelete) return;
@@ -113,20 +132,61 @@ export default function UsersListPage() {
         <div>
           <h2 className="display text-xl font-semibold" style={{ color: "var(--text)" }}>
             Users
+            <span
+              className="mono text-xs font-medium ml-2 align-middle px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}
+            >
+              {filtered.length}
+            </span>
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
             Everyone with access to this tenant's workspace.
           </p>
         </div>
         {canCreate && (
-          <Link to="/users/new" className="btn-primary">
-            <Plus size={16} />
-            Add user
-          </Link>
+          <div className="relative">
+            <button className="btn-primary" onClick={() => setAddMenuOpen((o) => !o)}>
+              <Plus size={16} />
+              Add user
+              <ChevronDown size={14} />
+            </button>
+            {addMenuOpen && (
+              <div
+                className="absolute right-0 mt-1 rounded-lg shadow-lg z-10"
+                style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", minWidth: 240 }}
+                onMouseLeave={() => setAddMenuOpen(false)}
+              >
+                <Link
+                  to="/users/new/supervisor-enumerator"
+                  className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm table-row"
+                  onClick={() => setAddMenuOpen(false)}
+                >
+                  <Users2 size={15} /> Supervisor &amp; Enumerator
+                </Link>
+                <Link
+                  to="/users/new/other"
+                  className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm table-row"
+                  onClick={() => setAddMenuOpen(false)}
+                >
+                  <UserPlus size={15} /> Others (HR, Data Manager…)
+                </Link>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      <SearchInput value={query} onChange={setQuery} placeholder="Search by name, email, phone, or role…" />
+      <div className="flex items-center gap-3 flex-wrap">
+        <SearchInput value={query} onChange={setQuery} placeholder="Search by name, email, phone, or role…" />
+        <SelectInput value={roleId} onChange={(e) => setRoleId(e.target.value)} style={{ minWidth: 180 }}>
+          <option value="">All roles</option>
+          {roles.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </SelectInput>
+      </div>
 
       {error && (
         <div className="text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--status-suspended-bg)", color: "var(--status-suspended-fg)" }}>

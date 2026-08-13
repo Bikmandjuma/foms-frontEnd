@@ -83,6 +83,8 @@ export default function BeneficiariesListPage() {
       label: "Location",
       render: (r) => [r.district?.name, r.sector?.name, r.cell?.name, r.village?.name].filter(Boolean).join(" / ") || "—",
     },
+    { key: "category", label: "Category", render: (r) => r.category || "—" },
+    { key: "personalId", label: "Personal ID", render: (r) => r.personalId || "—" },
     { key: "programs", label: "Programs", render: (r) => (r.programs?.length ? r.programs.map((p) => p.name).join(", ") : "—") },
     { key: "outcome", label: "Outcome", render: (r) => <StatusBadge status={r.outcome || "PENDING"} /> },
     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },

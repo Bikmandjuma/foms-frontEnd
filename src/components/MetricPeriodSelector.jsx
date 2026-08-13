@@ -2,11 +2,13 @@ import React from "react";
 
 const METRICS = [
   { value: "checkins", label: "Check-ins" },
+  { value: "logins", label: "Logins" },
   { value: "online-users", label: "Online users" },
   { value: "beneficiary-attendance", label: "Beneficiary attendance" },
 ];
 
 const PERIODS = [
+  { value: "day", label: "Daily" },
   { value: "week", label: "Per week" },
   { value: "month", label: "Per month" },
   { value: "year", label: "Per year" },

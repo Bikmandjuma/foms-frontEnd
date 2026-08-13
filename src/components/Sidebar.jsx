@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronDown, Zap, ShieldCheck } from "lucide-react";
+import { ChevronDown, Zap, ShieldCheck, Maximize2, Minimize2 } from "lucide-react";
 import { NAV } from "../nav.config.js";
 import { usePermissions } from "../permissions/usePermissions.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -25,6 +25,27 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
 
   const toggleGroup = (key) => setOpenGroups((s) => ({ ...s, [key]: !s[key] }));
 
+  const [isPageFullscreen, setIsPageFullscreen] = useState(Boolean(document.fullscreenElement));
+
+  React.useEffect(() => {
+    function onChange() {
+      setIsPageFullscreen(Boolean(document.fullscreenElement));
+    }
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  function togglePageFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen().catch(() => {
+        // Some embedded/iframe contexts block the Fullscreen API outright —
+        // nothing useful to do beyond leaving the toggle where it was.
+      });
+    }
+  }
+
   return (
     <aside
       className={`fixed lg:sticky top-0 z-40 h-screen w-64 flex-shrink-0 flex flex-col p-4 transition-transform duration-200 self-start ${
@@ -39,6 +60,15 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
         <span className="display text-lg font-semibold" style={{ color: "var(--text)" }}>
           Field<span style={{ color: "var(--violet)" }}>Ops</span>
         </span>
+        <button
+          className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+          style={{ color: "var(--muted)" }}
+          onClick={togglePageFullscreen}
+          aria-label={isPageFullscreen ? "Exit full screen" : "Full screen"}
+          title={isPageFullscreen ? "Exit full screen" : "Full screen"}
+        >
+          {isPageFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+        </button>
       </div>
 
       <nav className="flex flex-col gap-1 overflow-y-auto flex-1">

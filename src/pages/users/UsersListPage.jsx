@@ -133,8 +133,8 @@ export default function UsersListPage() {
           <h2 className="display text-xl font-semibold" style={{ color: "var(--text)" }}>
             Users
             <span
-              className="mono text-xs font-medium ml-2 align-middle px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: "sky-blue", color: "white" }}
+              className="mono text-xs font-medium ml-2 align-middle px-2 py-0.5"
+              Style={{ backgroundColor: "var(--blue)", color: "var(--muted)", borderRadius: 200, fontSize: 11,width: 10, height: 10 }}
             >
               {filtered.length}
             </span>

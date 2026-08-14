@@ -295,13 +295,13 @@ export default function LiveFieldMapPage() {
         {!loading && withPosition.length === 0 && (
           <div className="flex items-center gap-2 text-sm justify-center py-6" style={{ color: "var(--muted)" }}>
             <MapPin size={16} />
-            No GPS positions yet for {isToday ? "today" : date} — staff show up here once they check in with location enabled.
+            No GPS positions yet for {isToday ? "today" : date} , staff show up here once they check in with location enabled.
           </div>
         )}
 
         <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--muted)" }}>
           <Wifi size={13} />
-          {isToday ? "Live — moves instantly as staff check in and their location updates." : "Historical view — showing where staff were, not live."}
+          {isToday ? "Live moves instantly as staff check in and their location updates." : "Historical view , showing where staff were, not live."}
         </div>
       </div>
     </div>

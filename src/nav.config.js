@@ -25,15 +25,16 @@ export const NAV = [
   { type: "link", key: "dashboard", label: "Dashboard", icon: LayoutGrid, to: "/" },
   {
     type: "group",
-    key: "users",
-    label: "Users",
-    icon: Users,
-    requires: ACTIONS.USERS_VIEW,
+    key: "programs",
+    label: "Programs",
+    icon: ClipboardList,
+    requires: ACTIONS.PROGRAMS_VIEW,
     children: [
-      { label: "View users", to: "/users" },
-      { label: "Add user", to: "/users/new", requires: ACTIONS.USERS_CREATE },
+      { label: "View programs", to: "/programs" },
+      { label: "Add program", to: "/programs/new", requires: ACTIONS.PROGRAMS_CREATE },
     ],
   },
+
   {
     type: "group",
     key: "roles",
@@ -45,17 +46,20 @@ export const NAV = [
       { label: "Add role", to: "/roles/new", requires: ACTIONS.ROLES_CREATE },
     ],
   },
+  
   {
     type: "group",
-    key: "programs",
-    label: "Programs",
-    icon: ClipboardList,
-    requires: ACTIONS.PROGRAMS_VIEW,
+    key: "users",
+    label: "Users",
+    icon: Users,
+    requires: ACTIONS.USERS_VIEW,
     children: [
-      { label: "View programs", to: "/programs" },
-      { label: "Add program", to: "/programs/new", requires: ACTIONS.PROGRAMS_CREATE },
+      { label: "View users", to: "/users" },
+      { label: "Add user", to: "/users/new", requires: ACTIONS.USERS_CREATE },
     ],
   },
+  
+  
   {
     type: "group",
     key: "beneficiaries",

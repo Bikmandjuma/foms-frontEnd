@@ -134,7 +134,7 @@ export default function UsersListPage() {
             Users
             <span
               className="mono text-xs font-medium ml-2 align-middle px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}
+              style={{ backgroundColor: "sky-blue", color: "white" }}
             >
               {filtered.length}
             </span>
@@ -158,14 +158,14 @@ export default function UsersListPage() {
               >
                 <Link
                   to="/users/new/supervisor-enumerator"
-                  className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm table-row"
+                  className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm"
                   onClick={() => setAddMenuOpen(false)}
                 >
                   <Users2 size={15} /> Supervisor &amp; Enumerator
                 </Link>
                 <Link
                   to="/users/new/other"
-                  className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm table-row"
+                  className="flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm"
                   onClick={() => setAddMenuOpen(false)}
                 >
                   <UserPlus size={15} /> Others (HR, Data Manager…)

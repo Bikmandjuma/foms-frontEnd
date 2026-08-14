@@ -46,7 +46,7 @@ export const NAV = [
       { label: "Add role", to: "/roles/new", requires: ACTIONS.ROLES_CREATE },
     ],
   },
-  
+
   {
     type: "group",
     key: "users",
@@ -63,12 +63,12 @@ export const NAV = [
   {
     type: "group",
     key: "beneficiaries",
-    label: "Respondents",
+    label: "Participants",
     icon: Heart,
     requires: ACTIONS.BENEFICIARIES_VIEW,
     children: [
-      { label: "View respondents", to: "/beneficiaries" },
-      { label: "Add respondent", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
+      { label: "View participants", to: "/beneficiaries" },
+      { label: "Add participant", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
     ],
   },
   {

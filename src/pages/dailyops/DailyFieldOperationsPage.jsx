@@ -208,6 +208,9 @@ export default function DailyFieldOperationsPage() {
             <span style={{ color: "var(--muted)" }}>
               <strong style={{ color: "var(--rose)" }}>{summary.refused}</strong> refused
             </span>
+            <span style={{ color: "var(--muted)" }}>
+              <strong style={{ color: "var(--rose)" }}>{summary.deseased}</strong> deseased
+            </span>
           </div>
         )}
 

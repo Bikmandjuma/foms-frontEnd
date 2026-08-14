@@ -266,7 +266,7 @@ export default function Topbar({ title, onOpenMobileNav }) {
                 <Settings size={16} color="var(--muted)" />
                 Settings
               </button>
-              <button
+              {/* <button
                 role="menuitem"
                 onClick={() => {
                   setOpen(false);
@@ -277,7 +277,7 @@ export default function Topbar({ title, onOpenMobileNav }) {
               >
                 <UserCircle size={16} color="var(--muted)" />
                 My profile
-              </button>
+              </button> */}
               <div style={{ borderTop: "1px solid var(--border)" }}>
                 <button
                   role="menuitem"

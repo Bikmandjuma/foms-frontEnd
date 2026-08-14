@@ -30,8 +30,8 @@ export const NAV = [
     icon: ClipboardList,
     requires: ACTIONS.PROGRAMS_VIEW,
     children: [
-      { label: "View programs", to: "/programs" },
       { label: "Add program", to: "/programs/new", requires: ACTIONS.PROGRAMS_CREATE },
+      { label: "View programs", to: "/programs" },
     ],
   },
 
@@ -42,8 +42,9 @@ export const NAV = [
     icon: ShieldCheck,
     requires: ACTIONS.ROLES_VIEW,
     children: [
-      { label: "View roles", to: "/roles" },
       { label: "Add role", to: "/roles/new", requires: ACTIONS.ROLES_CREATE },
+      { label: "View roles", to: "/roles" },
+      
     ],
   },
 
@@ -54,8 +55,8 @@ export const NAV = [
     icon: Users,
     requires: ACTIONS.USERS_VIEW,
     children: [
-      { label: "View users", to: "/users" },
       { label: "Add user", to: "/users/new", requires: ACTIONS.USERS_CREATE },
+      { label: "View users", to: "/users" },
     ],
   },
   
@@ -67,8 +68,8 @@ export const NAV = [
     icon: Heart,
     requires: ACTIONS.BENEFICIARIES_VIEW,
     children: [
-      { label: "View participants", to: "/beneficiaries" },
       { label: "Add participant", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
+      { label: "View participants", to: "/beneficiaries" },
     ],
   },
   {
@@ -78,8 +79,8 @@ export const NAV = [
     icon: Truck,
     requires: ACTIONS.VEHICLES_VIEW,
     children: [
-      { label: "View vehicles", to: "/vehicles" },
       { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
+      { label: "View vehicles", to: "/vehicles" },
     ],
   },
   {

@@ -8,6 +8,7 @@ import { rolesApi } from "../../api/roles.api.js";
 import { usersApi } from "../../api/users.api.js";
 import { programsApi } from "../../api/programs.api.js";
 import { useToast } from "../../context/ToastContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { usePermissions } from "../../permissions/usePermissions.js";
 import { ACTIONS } from "../../permissions/permissions.js";
 
@@ -18,6 +19,7 @@ export default function MealTransportReportsPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const { can } = usePermissions();
+  const { user } = useAuth();
   const canManage = can(ACTIONS.MEAL_TRANSPORT_REPORTS_MANAGE);
   const canCreate = canManage || can(ACTIONS.MEAL_TRANSPORT_REPORTS_CREATE);
 
@@ -51,11 +53,14 @@ export default function MealTransportReportsPage() {
     // Non-managers get back only reports where they're the assigned
     // approver, the backend scopes this automatically, so this is safe to
     // call regardless of permission level.
+    // listAll() returns everything for a manager, not just what's assigned
+    // to them personally, "Awaiting your approval" must only ever show
+    // reports where the viewer themselves is the named approver.
     mealTransportReportsApi
       .listAll()
-      .then((list) => setToApprove(list.filter((r) => r.status === "PENDING_APPROVAL")))
+      .then((list) => setToApprove(list.filter((r) => r.status === "PENDING_APPROVAL" && r.config.approverUserId === user?.id)))
       .catch(() => {});
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!canCreate) return;

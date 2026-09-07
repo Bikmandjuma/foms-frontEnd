@@ -394,6 +394,10 @@ export default function MealTransportReportDetailPage() {
                 <p className="mt-2">Signature:</p>
                 {report.preparerSignatureImage ? (
                   <img src={report.preparerSignatureImage} alt="Preparer signature" style={{ height: 40, background: "white", borderRadius: 4 }} />
+                ) : report.preparerSignatureName ? (
+                  <span style={{ fontFamily: "'Brush Script MT', cursive", fontSize: 22, color: "var(--text)" }}>
+                    {report.preparerSignatureName}
+                  </span>
                 ) : (
                   <p>—</p>
                 )}
@@ -410,6 +414,10 @@ export default function MealTransportReportDetailPage() {
                 <p className="mt-2">Signature:</p>
                 {report.approverSignatureImage ? (
                   <img src={report.approverSignatureImage} alt="Approver signature" style={{ height: 40, background: "white", borderRadius: 4 }} />
+                ) : report.approverSignatureName ? (
+                  <span style={{ fontFamily: "'Brush Script MT', cursive", fontSize: 22, color: "var(--text)" }}>
+                    {report.approverSignatureName}
+                  </span>
                 ) : (
                   <p>—</p>
                 )}

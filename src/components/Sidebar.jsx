@@ -74,6 +74,7 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
       <nav className="flex flex-col gap-1 overflow-y-auto flex-1">
         {NAV.map((item) => {
           if (item.requires && !can(item.requires)) return null;
+          if (item.hideForPlatformAdmin && user?.isPlatformAdmin) return null;
 
           if (item.type === "link") {
             return (

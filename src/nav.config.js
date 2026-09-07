@@ -154,6 +154,9 @@ export const NAV = [
     label: "Meal & transport reports",
     icon: Utensils,
     to: "/meal-transport-reports",
+    // Tenant-scoped, a platform admin working across tenants has no
+    // single tenant context for this, so it never shows for them.
+    hideForPlatformAdmin: true,
   },
   {
     type: "link",

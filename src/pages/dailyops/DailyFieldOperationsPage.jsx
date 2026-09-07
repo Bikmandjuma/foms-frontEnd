@@ -155,7 +155,7 @@ export default function DailyFieldOperationsPage() {
             Daily Field Operations
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-            Select a group to see each enumerator's day ,check-in, progress, location, and status.
+            Select a group to see each enumerator's day — check-in, progress, location, and status.
           </p>
         </div>
         <button className="btn-secondary" onClick={load} disabled={loading}>
@@ -207,9 +207,6 @@ export default function DailyFieldOperationsPage() {
             </span>
             <span style={{ color: "var(--muted)" }}>
               <strong style={{ color: "var(--rose)" }}>{summary.refused}</strong> refused
-            </span>
-            <span style={{ color: "var(--muted)" }}>
-              <strong style={{ color: "var(--rose)" }}>{summary.deseased}</strong> deseased
             </span>
           </div>
         )}

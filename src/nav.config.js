@@ -15,6 +15,7 @@ import {
   Wallet,
   Users2,
   Clock,
+  Utensils,
 } from "lucide-react";
 import { ACTIONS } from "./permissions/permissions.js";
 
@@ -25,16 +26,15 @@ export const NAV = [
   { type: "link", key: "dashboard", label: "Dashboard", icon: LayoutGrid, to: "/" },
   {
     type: "group",
-    key: "programs",
-    label: "Programs",
-    icon: ClipboardList,
-    requires: ACTIONS.PROGRAMS_VIEW,
+    key: "users",
+    label: "Users",
+    icon: Users,
+    requires: ACTIONS.USERS_VIEW,
     children: [
-      { label: "Add program", to: "/programs/new", requires: ACTIONS.PROGRAMS_CREATE },
-      { label: "View programs", to: "/programs" },
+      { label: "View users", to: "/users" },
+      { label: "Add user", to: "/users/new", requires: ACTIONS.USERS_CREATE },
     ],
   },
-
   {
     type: "group",
     key: "roles",
@@ -42,34 +42,30 @@ export const NAV = [
     icon: ShieldCheck,
     requires: ACTIONS.ROLES_VIEW,
     children: [
-      { label: "Add role", to: "/roles/new", requires: ACTIONS.ROLES_CREATE },
       { label: "View roles", to: "/roles" },
-      
+      { label: "Add role", to: "/roles/new", requires: ACTIONS.ROLES_CREATE },
     ],
   },
-
   {
     type: "group",
-    key: "users",
-    label: "Users",
-    icon: Users,
-    requires: ACTIONS.USERS_VIEW,
+    key: "programs",
+    label: "Programs",
+    icon: ClipboardList,
+    requires: ACTIONS.PROGRAMS_VIEW,
     children: [
-      { label: "Add user", to: "/users/new", requires: ACTIONS.USERS_CREATE },
-      { label: "View users", to: "/users" },
+      { label: "View programs", to: "/programs" },
+      { label: "Add program", to: "/programs/new", requires: ACTIONS.PROGRAMS_CREATE },
     ],
   },
-  
-  
   {
     type: "group",
     key: "beneficiaries",
-    label: "Participants",
+    label: "Respondents",
     icon: Heart,
     requires: ACTIONS.BENEFICIARIES_VIEW,
     children: [
-      { label: "Add participant", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
-      { label: "View participants", to: "/beneficiaries" },
+      { label: "View respondents", to: "/beneficiaries" },
+      { label: "Add respondent", to: "/beneficiaries/new", requires: ACTIONS.BENEFICIARIES_CREATE },
     ],
   },
   {
@@ -79,8 +75,8 @@ export const NAV = [
     icon: Truck,
     requires: ACTIONS.VEHICLES_VIEW,
     children: [
-      { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
       { label: "View vehicles", to: "/vehicles" },
+      { label: "Add vehicle", to: "/vehicles/new", requires: ACTIONS.VEHICLES_CREATE },
     ],
   },
   {
@@ -151,6 +147,13 @@ export const NAV = [
     icon: Wallet,
     to: "/field-expenses",
     requires: ACTIONS.EXPENSES_VIEW,
+  },
+  {
+    type: "link",
+    key: "meal-transport-reports",
+    label: "Meal & transport reports",
+    icon: Utensils,
+    to: "/meal-transport-reports",
   },
   {
     type: "link",

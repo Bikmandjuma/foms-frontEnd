@@ -39,6 +39,9 @@ import FieldTeamReportPage from "./pages/reports/FieldTeamReportPage.jsx";
 import ExpensesListPage from "./pages/expenses/ExpensesListPage.jsx";
 import AssignGroupsPage from "./pages/groups/AssignGroupsPage.jsx";
 import DailyFieldOperationsPage from "./pages/dailyops/DailyFieldOperationsPage.jsx";
+import MealTransportReportsPage from "./pages/mealtransport/MealTransportReportsPage.jsx";
+import MealTransportReportDetailPage from "./pages/mealtransport/MealTransportReportDetailPage.jsx";
+import MealTransportWeekDetailPage from "./pages/mealtransport/MealTransportWeekDetailPage.jsx";
 import ActivityLogsPage from "./pages/activity/ActivityLogsPage.jsx";
 import TenantsListPage from "./pages/tenants/TenantsListPage.jsx";
 import TenantFormPage from "./pages/tenants/TenantFormPage.jsx";
@@ -110,6 +113,9 @@ export default function App() {
                     <Route path="field-expenses" element={<ProtectedRoute requires={ACTIONS.EXPENSES_VIEW}><ExpensesListPage /></ProtectedRoute>} />
                     <Route path="assign-groups" element={<ProtectedRoute requires={ACTIONS.TEAMS_VIEW}><AssignGroupsPage /></ProtectedRoute>} />
                     <Route path="daily-operations" element={<ProtectedRoute requires={ACTIONS.MONITORING_VIEW}><DailyFieldOperationsPage /></ProtectedRoute>} />
+                    <Route path="meal-transport-reports" element={<ProtectedRoute><MealTransportReportsPage /></ProtectedRoute>} />
+                    <Route path="meal-transport-reports/weeks/:weekId" element={<ProtectedRoute requires={ACTIONS.MEAL_TRANSPORT_REPORTS_MANAGE}><MealTransportWeekDetailPage /></ProtectedRoute>} />
+                    <Route path="meal-transport-reports/:id" element={<ProtectedRoute><MealTransportReportDetailPage /></ProtectedRoute>} />
 
                     <Route path="activity-logs" element={<ProtectedRoute><ActivityLogsPage /></ProtectedRoute>} />
 

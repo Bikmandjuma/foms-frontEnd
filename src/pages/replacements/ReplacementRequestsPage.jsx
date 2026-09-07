@@ -95,7 +95,7 @@ export default function ReplacementRequestsPage() {
       if (result.candidateRespondent) {
         toast.success(`Replaced with ${result.candidateRespondent.name} (${result.candidateRespondent.code})`);
       } else {
-        toast.info("No eligible participant was available yet, this request is queued.");
+        toast.info("No eligible respondent was available yet — this request is queued.");
       }
       setForm({ originalRespondentId: "", reason: "" });
       loadAll();
@@ -114,7 +114,7 @@ export default function ReplacementRequestsPage() {
       toast.success("Replacement resolved");
       loadAll();
     } catch (err) {
-      setError(err.message || "Still no eligible participant is available.");
+      setError(err.message || "Still no eligible respondent is available.");
     } finally {
       setRetryingId(null);
     }
@@ -134,7 +134,7 @@ export default function ReplacementRequestsPage() {
   }
 
   const columns = [
-    { key: "original", label: "Participant who couldn't be reached", render: (r) => `${r.originalRespondent?.name} (${r.originalRespondent?.code})` },
+    { key: "original", label: "Respondent who couldn't be reached", render: (r) => `${r.originalRespondent?.name} (${r.originalRespondent?.code})` },
     { key: "candidate", label: "Replaced with", render: (r) => (r.candidateRespondent ? `${r.candidateRespondent.name} (${r.candidateRespondent.code})` : "—") },
     { key: "matchLevel", label: "Match", render: (r) => (r.status === "APPROVED" ? <MatchBadge level={r.matchLevel} /> : <span style={{ color: "var(--muted)" }}>—</span>) },
     { key: "reason", label: "Reason" },
@@ -175,7 +175,7 @@ export default function ReplacementRequestsPage() {
         </h2>
         <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
           The system searches village → cell → sector → district for a replacement and
-          applies it immediately. If several participants share the closest matching tier, one is picked at
+          applies it immediately. If several respondents share the closest matching tier, one is picked at
           random among them.
         </p>
       </div>
@@ -190,10 +190,10 @@ export default function ReplacementRequestsPage() {
         <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--muted)" }}>
           Raise a new request
         </p>
-        <Field label="Participant who can't be reached" required>
+        <Field label="Respondent who can't be reached" required>
           <SelectInput required value={form.originalRespondentId} onChange={(e) => setForm((f) => ({ ...f, originalRespondentId: e.target.value }))}>
             <option value="" className="text-black">
-              Select a participant…
+              Select a respondent…
             </option>
             {beneficiaries.map((b) => (
               <option key={b.id} value={b.id} className="text-black">
@@ -226,7 +226,7 @@ export default function ReplacementRequestsPage() {
             </button>
           ))}
         </div>
-        <SearchInput value={query} onChange={setQuery} placeholder="Search by participant, code, or reason…" />
+        <SearchInput value={query} onChange={setQuery} placeholder="Search by respondent, code, or reason…" />
       </div>
 
       <div className="card">
@@ -237,7 +237,7 @@ export default function ReplacementRequestsPage() {
       <ConfirmDialog
         open={!!pendingDelete}
         title="Delete this request?"
-        message="This removes the request record. If it already replaced a participant, that replacement itself is not undone."
+        message="This removes the request record. If it already replaced a respondent, that replacement itself is not undone."
         onConfirm={handleDelete}
         onCancel={() => setPendingDelete(null)}
       />

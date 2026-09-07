@@ -131,7 +131,7 @@ export default function AddSupervisorEnumeratorPage() {
         <div className="card p-6 flex flex-col gap-4">
           <div className="flex items-start gap-2 text-sm rounded-xl px-4 py-3" style={{ backgroundColor: "var(--surface-2)", color: "var(--muted)" }}>
             <Info size={16} className="flex-shrink-0 mt-0.5" />
-            One row per person Group, Group name, Operational area, Role (Supervisor/Enumerator), Name, Phone number, Email, District,
+            One row per person — Group, Group name, Operational area, Role (Supervisor/Enumerator), Name, Phone number, Email, District,
             Region. Any number of groups, any number of enumerators per group. Everyone signs in with their email and their own phone
             number as the password.
           </div>

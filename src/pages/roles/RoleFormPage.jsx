@@ -49,6 +49,9 @@ function actionCopy(groupLabel, action) {
   if (action === "edit") return `Edit existing ${noun}`;
   if (action === "delete") return `Delete ${noun}`;
   if (action === "manage") return `Create, edit, and delete ${noun}`;
+  if (action === "approve") return `Approve ${noun}`;
+  if (action === "confirm") return `Confirm ${noun}`;
+  if (action === "view-unconfirmed") return `See ${noun} before they're confirmed`;
   return action;
 }
 
@@ -56,13 +59,23 @@ function actionCopy(groupLabel, action) {
 // "resource:manage" instead of the create/edit/delete trio. Expand it so
 // the checkboxes show the right thing pre-checked; saving the role from
 // here on writes the granular set, quietly completing the migration.
+// Only applies to genuinely legacy CRUD groups — a group whose other
+// actions aren't exactly view/create/edit/delete (Field monitoring's
+// manage, or Meal & transport reports' manage/create/approve trio) has
+// manage as a real, current, standalone permission, and expanding it here
+// would wrongly auto-check its siblings too.
 function expandLegacyManage(storedPermissions, groups) {
+  const CRUD_ACTIONS = new Set(["view", "create", "edit", "delete"]);
   const expanded = new Set(storedPermissions);
   for (const perm of storedPermissions) {
     if (!perm.endsWith(":manage")) continue;
     const resource = perm.split(":")[0];
     const group = groups.find((g) => g.permissions.some((p) => p.startsWith(`${resource}:`)));
     if (!group) continue;
+    const actions = group.permissions.map((p) => p.split(":")[1]);
+    const others = actions.filter((a) => a !== "manage");
+    const isLegacyCrudGroup = others.length === CRUD_ACTIONS.size && others.every((a) => CRUD_ACTIONS.has(a));
+    if (!isLegacyCrudGroup) continue;
     for (const groupPerm of group.permissions) {
       if (groupPerm.startsWith(`${resource}:`) && groupPerm !== `${resource}:manage`) {
         expanded.add(groupPerm);
@@ -168,12 +181,25 @@ export default function RoleFormPage() {
       // Resources that used to have a single "manage" permission now have
       // granular create/edit/delete instead — drop the stray legacy string
       // once its granular equivalents are present, so a re-saved role is
-      // fully migrated rather than carrying redundant leftovers. Field
-      // monitoring's "manage" is current, not legacy — leave it alone.
-      const crudResources = new Set(
-        groups.filter((g) => g.permissions.some((p) => p.endsWith(":create"))).flatMap((g) => g.permissions.map((p) => p.split(":")[0]))
+      // fully migrated rather than carrying redundant leftovers. Only
+      // strip it when the group's other actions are *exactly* the CRUD
+      // quartet (view/create/edit/delete) — a group that also has other
+      // actions alongside manage (Field monitoring's manage, or Meal &
+      // transport reports' manage/create/approve trio) has manage as a
+      // real, current, standalone permission, not a legacy leftover, and
+      // must never have it silently stripped on save.
+      const CRUD_ACTIONS = new Set(["view", "create", "edit", "delete"]);
+      const legacyManageResources = new Set(
+        groups
+          .filter((g) => {
+            const actions = g.permissions.map((p) => p.split(":")[1]);
+            if (!actions.includes("manage")) return false;
+            const others = actions.filter((a) => a !== "manage");
+            return others.length === CRUD_ACTIONS.size && others.every((a) => CRUD_ACTIONS.has(a));
+          })
+          .flatMap((g) => g.permissions.map((p) => p.split(":")[0]))
       );
-      const cleanedPermissions = permissions.filter((p) => !(p.endsWith(":manage") && crudResources.has(p.split(":")[0])));
+      const cleanedPermissions = permissions.filter((p) => !(p.endsWith(":manage") && legacyManageResources.has(p.split(":")[0])));
 
       const payload = { name: form.name, description: form.description || undefined, permissions: cleanedPermissions };
       if (isEdit) await rolesApi.update(id, payload);
